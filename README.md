@@ -1,1 +1,2 @@
-# CEN3031_Summer2025_Project
+# SwampScheduler
+A Gator-themed productivity web app for UF students
