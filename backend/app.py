@@ -36,7 +36,7 @@ CORS(app)
 # basic health check route
 
 
-@app.route('/')
+@app.route('/api/health')
 def health_check():
     """basic health check endpoint"""
     return jsonify({
