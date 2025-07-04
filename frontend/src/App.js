@@ -11,25 +11,63 @@ function App() {
         <div style={{
           display: 'flex',
           alignItems: 'center',
-          gap: '12px'
+          justifyContent: 'space-between'
         }}>
-          {/* Logo */}
-          <img 
-            src="/path-to-gator-logo.png" 
-            alt="SwampScheduler Logo" 
-            style={{ width: '48px', height: '48px' }}
-          />
-          {/* Title */}
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: 'bold',
-            color: '#7dcea0',
-            margin: 0
+          {/* Left side - Logo and Title */}
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
           }}>
-            SwampScheduler
-          </h1>
-        </div>
-      </header>
+            {/* Logo */}
+            <img 
+              src="/path-to-gator-logo.png" 
+              alt="SwampScheduler Logo" 
+              style={{ width: '48px', height: '48px' }}
+            />
+            {/* Title */}
+            <h1 style={{
+              fontSize: '32px',
+              fontWeight: 'bold',
+              color: '#7dcea0',
+              margin: 0
+            }}>
+              SwampScheduler
+            </h1>
+          </div>
+
+          {/* Right side - Login Buttons */}
+          <div style={{
+                display: 'flex',
+                gap: '12px',
+                alignItems: 'center'
+              }}>
+                <button style={{
+                  background: 'transparent',
+                  color: '#7dcea0',
+                  padding: '8px 16px',
+                  border: '1px solid #7dcea0',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}>
+                  Sign Up
+                </button>
+                
+                <button style={{
+                  background: 'linear-gradient(135deg, #6B7B47, #7dcea0)',
+                  color: 'white',
+                  padding: '8px 16px',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '500'
+                }}>
+                  Login
+                </button>
+              </div>
+            </div>
+          </header>
 
       {/* Simple Draft of Homepage */}
       <main style={{
