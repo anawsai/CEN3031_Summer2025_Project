@@ -94,10 +94,10 @@ def register():
     )
     
     # Status Code 201: Signifies Successful Creation
-    if response.status_code == 201:
+    if response.error is None:
         return jsonify({"message": "User successfully created", "data": response.data }), 201
     else:
-        return jsonify({"error": response.error}), response.status_code
+        return jsonify({"error": response.error}), 400
     
    
    # return jsonify({'message': 'register endpoint - todo: implement'}), 501
