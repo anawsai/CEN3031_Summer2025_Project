@@ -9,8 +9,11 @@ import os
 # loads environment variables
 load_dotenv()
 
+url = os.getenv("SUPABASE_URL")
+
 # Working in backend so using service key
-supabase: Client = create_client("SUPABASE_URL", "SUPABASE_SERVICE_KEY")
+key = os.getenv("SUPABASE_SERVICE_KEY")
+supabase: Client = create_client(url, key)
 
 # import our custom modules (uncomment as we develop)
 # from utils.firebase_auth import verify_token, create_user
