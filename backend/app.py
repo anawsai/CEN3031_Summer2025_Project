@@ -3,10 +3,14 @@ from config import Config, config
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from supabase import create_client, Client
 import os
 
-# load environment variables
+# loads environment variables
 load_dotenv()
+
+# Working in backend so using service key
+supabase: Client = create_client("SUPABASE_URL", "SUPABASE_SERVICE_KEY")
 
 # import our custom modules (uncomment as we develop)
 # from utils.firebase_auth import verify_token, create_user
@@ -60,12 +64,40 @@ def health_check():
 @app.route('/api/auth/register', methods=['POST'])
 def register():
     """register new user account - todo: implement user registration logic"""
-    # todo: validate input data
-    # todo: check if user already exists
-    # todo: create firebase user
-    # todo: store user data in postgresql
-    # todo: return success response with user data
-    return jsonify({'message': 'register endpoint - todo: implement'}), 501
+
+# TODO: Check for authenticator
+# TODO: validate input data and check if everything is as its supposed to
+# TODO: check if user already exists
+# TODO: store user data in supabase
+# TODO: return success response with user data
+
+    data = request.get_json()
+
+    username = data.get('username')
+    email = data.get('email')
+    major = data.get('major')
+    year = data.get('year')
+    first_name = data.get('first_name')
+    last_name = data.get('last_name')
+
+    response = (supabase.table("Users").insert({
+        "email":email,
+        "username":username,
+        "major":major,
+        "year":year, 
+        "first_name":first_name,
+        "last_name":last_name
+        }).execute()
+    )
+    
+    # Status Code 201: Signifies Successful Creation
+    if response.status_code == 201:
+        return jsonify({"message": "User successfully created", "data": response.data }), 201
+    else:
+        return jsonify({"error": response.error}), response.status_code
+    
+   
+   # return jsonify({'message': 'register endpoint - todo: implement'}), 501
 
 
 @app.route('/api/auth/login', methods=['POST'])
