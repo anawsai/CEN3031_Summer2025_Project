@@ -1,90 +1,84 @@
-import React from 'react';
+import React, {useState} from 'react';
+
+//pages
+import { Login } from './pages/Login';
+import { Signup } from './pages/Signup';
+import { Home } from './pages/Home';
+import { Tasks} from './pages/Tasks';
+import { Dashboard } from './pages/Dashboard';
 
 function App() {
-  return (
-    <div style={{
-      minHeight: '100%',
-      backgroundColor: 'beige'
-    }}>
-      {/* Header */}
-      <header style={{ padding: '24px' }}>
-        <div style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px'
-        }}>
-          {/* Logo */}
-          <img 
-            src="/path-to-gator-logo.png" 
-            alt="SwampScheduler Logo" 
-            style={{ width: '48px', height: '48px' }}
-          />
-          {/* Title */}
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: 'bold',
-            color: '#7dcea0',
-            margin: 0
-          }}>
-            SwampScheduler
-          </h1>
-        </div>
-      </header>
+  const [currentPage, setCurrentPage] = useState('home');
+  const [tasks, setTasks] = useState([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    dueDate: '',
+    priority: ''
+  });
 
-      {/* Simple Draft of Homepage */}
-      <main style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '24px',
-        minHeight: '100vh'
-      }}>
-        <div style={{
-          textAlign: 'center',
-          maxWidth: '600px'
-        }}>
-          <h2 style={{
-            fontSize: '60px',
-            fontWeight: 'bold',
-            marginBottom: '16px',
-            color: '#7dcea0'
-          }}>
-            Welcome!
-          </h2>
-          <p style={{
-            fontSize: '20px',
-            color: '#78716c',
-            marginBottom: '32px'
-          }}>
-            A smart task planner for busy Gators!
-          </p>
-          
-          <button style={{
-            background: 'linear-gradient(135deg, #6B7B47, #7dcea0)',
-            color: 'white',
-            padding: '16px 32px',
-            borderRadius: '12px',
-            fontWeight: '600',
-            border: 'none',
-            boxShadow: '0 10px 15px rgba(0, 0, 0, 0.1)',
-            cursor: 'pointer',
-            fontSize: '16px',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => {
-            e.target.style.transform = 'translateY(-2px)';
-            e.target.style.boxShadow = '0 20px 25px rgba(0, 0, 0, 0.15)';
-          }}
-          onMouseOut={(e) => {
-            e.target.style.transform = 'translateY(0)';
-            e.target.style.boxShadow = '0 10px 15px rgba(0, 0, 0, 0.1)';
-          }}>
-            Get Started
-          </button>
-        </div>
-      </main>
-    </div>
-  );
+
+  //handle adding a new task
+  const addTask = () => {
+    if (newTask.title.trim() !== '') {
+      setTasks([...tasks, newTask]);
+      setNewTask({
+        title: '',
+        description: '',
+        dueDate: '',
+        priority: ''
+      });
+    }
+  };
+
+  //routing logic
+  if (currentPage === 'home') {
+    return <Home setCurrentPage={setCurrentPage} />;
+  }
+  if (currentPage === 'dashboard') {
+    if (!isAuthenticated) { //if not authenticated, redirect to home (no url access)
+      return <Home setCurrentPage={setCurrentPage} />;
+    }
+
+    return (
+      <Dashboard
+        tasks={tasks}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        addTask={addTask}
+        setCurrentPage={setCurrentPage}
+      />
+    );
+  }
+  if (currentPage === 'login') {
+    return <Login 
+    setCurrentPage={setCurrentPage} 
+    setIsAuthenticated={setIsAuthenticated}
+    />;
+  }
+  if (currentPage === 'signup') {
+    return <Signup 
+    setCurrentPage={setCurrentPage}
+    setIsAuthenticated={setIsAuthenticated}
+     />;
+  }
+  if (currentPage === 'tasks') {
+    if (!isAuthenticated) { //if not authenticated, redirect to home (no url access)
+      return <Home setCurrentPage={setCurrentPage} />;
+    }
+
+    return (
+      <Tasks
+        tasks={tasks}
+        newTask={newTask}
+        setNewTask={setNewTask}
+        addTask={addTask}
+        setCurrentPage={setCurrentPage}
+      />
+    );
+  }
+  return <div>Page not found</div>; //if something goes wrong
 }
 
 export default App;
