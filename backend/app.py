@@ -1,3 +1,5 @@
+from utils.database import init_supabase, test_connection
+from config import Config, config
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -7,8 +9,6 @@ import os
 load_dotenv()
 
 # import our custom modules (uncomment as we develop)
-# from config import Config
-# from utils.database import db_connection, init_db
 # from utils.firebase_auth import verify_token, create_user
 # from routes.auth import auth_bp
 # from routes.tasks import tasks_bp
@@ -19,31 +19,40 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# basic configuration
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key')
-app.config['DATABASE_URL'] = os.getenv('DATABASE_URL')
-app.config['FLASK_ENV'] = os.getenv('FLASK_ENV', 'development')
-
+# load configuration
+config_name = os.getenv('FLASK_ENV', 'development')
 # enable cors for frontend communication
+app.config.from_object(config[config_name])
+
 CORS(app)
 
-# todo: uncomment when config.py is implemented
-# app.config.from_object(Config)
-
-# todo: initialize database connection
-# init_db()
+# initialize supabase connection
+try:
+    init_supabase()
+    print("Supabase connection initialized successfully")
+except Exception as e:
+    print(f"Failed to initialize Supabase: {e}")
 
 # basic health check route
 
 
 @app.route('/api/health')
 def health_check():
-    """basic health check endpoint"""
+    """Enhanced health check endpoint with database connectivity"""
+    db_connected, db_message = test_connection()
+
     return jsonify({
-        'message': 'swampscheduler backend is running!',
+        'message': 'SwampScheduler backend is running!',
         'status': 'healthy',
-        'app': 'swampscheduler'
+        'app': 'swampscheduler',
+        'version': '0.1.0',
+        'database': {
+            'connected': db_connected,
+            'message': db_message
+        },
+        'environment': os.getenv('FLASK_ENV', 'development')
     })
+
 
 # todo: implement authentication routes
 
