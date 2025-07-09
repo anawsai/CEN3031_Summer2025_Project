@@ -52,6 +52,20 @@ export function Login({ setCurrentPage, setIsAuthenticated }) {
           }}
         />
 
+        <p
+          onClick={() => setCurrentPage('Signup')}
+          style = {{                  
+            color: 'blue',
+            textDecoration: 'underline',
+            cursor: 'pointer',
+            marginBottom: '24px',
+            textAlign: 'right',
+            fontSize: '0.9rem'
+          }} 
+        >
+          Need an account? Sign up
+        </p>
+
         <button 
             onClick={() => {
                 setIsAuthenticated(true);

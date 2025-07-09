@@ -18,7 +18,6 @@ export function Home({ setCurrentPage }) {
           {/* Logo + Title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <img 
-              src="/path-to-gator-logo.png" 
               alt="SwampScheduler Logo" 
               style={{ width: '48px', height: '48px' }}
             />
