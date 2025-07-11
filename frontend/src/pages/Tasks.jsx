@@ -9,6 +9,8 @@ export function Tasks({
   addTask,
   setCurrentPage
 }) {
+  const [showModal, setShowModal] = React.useState(false);
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -38,7 +40,7 @@ export function Tasks({
             color: '#4A5D23',
             margin: 0
           }}>
-            Create Tasks
+             Tasks
           </h1>
 
           <button
@@ -60,18 +62,77 @@ export function Tasks({
           </button>
         </div>
 
-        {/* Task Form */}
-        <TaskForm
-          newTask={newTask}
-          setNewTask={setNewTask}
-          addTask={addTask}
-        />
+        {/* Add Task Button */}
+        <button
+          onClick={() => setShowModal(true)}
+          style={{
+            backgroundColor: '#6B7B47',
+            color: 'white',
+            padding: '14px 24px',
+            border: 'none',
+            borderRadius: '10px',
+            fontWeight: 'bold',
+            marginBottom: '20px',
+            cursor: 'pointer'
+          }}
+        >
+          + Add Task
+        </button>
 
         {/* Task List */}
         <div style={{ marginTop: '40px' }}>
           <TaskList tasks={tasks} />
         </div>
-      </div>
+      </div>  
+
+      {/* Modal */}
+      {showModal && (
+        <div style={overlayStyle}>
+          <div style={modalStyle}>
+            <button onClick={() => setShowModal(false)} style={closeBtnStyle}>
+              ✕
+            </button>
+            <TaskForm
+              newTask={newTask}
+              setNewTask={setNewTask}
+              addTask={() => {
+                addTask();
+                setShowModal(false); //close modal after adding
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+const overlayStyle = {
+  position: 'fixed',
+  top: 0, left: 0, right: 0, bottom: 0,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  display: 'flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  zIndex: 1000
+};
+
+const modalStyle = {
+  backgroundColor: 'white',
+  padding: '40px',
+  borderRadius: '16px',
+  maxWidth: '600px',
+  width: '90%',
+  position: 'relative'
+};
+
+const closeBtnStyle = {
+  position: 'absolute',
+  top: '12px',
+  right: '16px',
+  background: 'none',
+  border: 'none',
+  fontSize: '24px',
+  cursor: 'pointer',
+  color: '#888'
+};
