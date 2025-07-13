@@ -15,14 +15,22 @@ function App() {
     title: '',
     description: '',
     dueDate: '',
-    priority: ''
+    priority: '',
+    completed: false
   });
+
+  const toggleComplete = (taskIndex) => {
+    const updatedTasks = tasks.map((task, index) =>
+      index === taskIndex ? { ...task, completed: !task.completed } : task
+    );
+    setTasks(updatedTasks);
+  };
 
 
   //handle adding a new task
   const addTask = () => {
     if (newTask.title.trim() !== '') {
-      setTasks([...tasks, newTask]);
+      setTasks([...tasks, { ...newTask, completed: false }]);
       setNewTask({
         title: '',
         description: '',
@@ -75,6 +83,7 @@ function App() {
         setNewTask={setNewTask}
         addTask={addTask}
         setCurrentPage={setCurrentPage}
+        toggleComplete={toggleComplete}
       />
     );
   }

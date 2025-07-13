@@ -7,7 +7,8 @@ export function Tasks({
   newTask,
   setNewTask,
   addTask,
-  setCurrentPage
+  setCurrentPage,
+  toggleComplete
 }) {
   const [showModal, setShowModal] = React.useState(false);
 
@@ -40,7 +41,7 @@ export function Tasks({
             color: '#4A5D23',
             margin: 0
           }}>
-             Tasks
+             My Tasks
           </h1>
 
           <button
@@ -81,7 +82,7 @@ export function Tasks({
 
         {/* Task List */}
         <div style={{ marginTop: '40px' }}>
-          <TaskList tasks={tasks} />
+          <TaskList tasks={tasks} toggleComplete={toggleComplete}/>
         </div>
       </div>  
 
@@ -106,6 +107,8 @@ export function Tasks({
     </div>
   );
 }
+
+
 
 const overlayStyle = {
   position: 'fixed',
