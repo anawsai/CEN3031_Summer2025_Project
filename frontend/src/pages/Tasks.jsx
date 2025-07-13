@@ -11,6 +11,19 @@ export function Tasks({
   toggleComplete
 }) {
   const [showModal, setShowModal] = React.useState(false);
+  const [filter, setFilter] = React.useState('');
+
+  //This is dropdown logic
+  let filteredTasks = [...tasks];
+
+  if (filter === 'priority') {
+    const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+    filteredTasks.sort((a, b) => {
+      return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
+    });
+  } else if (filter === 'deadline') {
+    filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+  }
 
   return (
     <div style={{
@@ -80,9 +93,30 @@ export function Tasks({
           + Add Task
         </button>
 
+        {/* Sort Dropdown*/}
+        <div style={{marginBottom: '20px'}}>
+          <label htmlFor="filter" style ={{marginRight: '10px', fontweight: 'bold'}}>
+            Sort By:
+          </label>
+          <select
+            id = "filter"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            style={{
+              padding: '8px',
+              borderRadius: '6px',
+              border: '1px solid #ccc'
+            }}
+          >
+            <option value="">None</option>
+            <option value="priority">Priority</option>
+            <option value="deadline">Deadline</option>
+          </select>
+        </div>
+
         {/* Task List */}
         <div style={{ marginTop: '40px' }}>
-          <TaskList tasks={tasks} toggleComplete={toggleComplete}/>
+          <TaskList tasks={filteredTasks} toggleComplete={toggleComplete}/>
         </div>
       </div>  
 
