@@ -296,11 +296,6 @@ def create_task():
         print(f"Error inserting task: {e}")
         return jsonify({'error': 'Internal Error', 'details':str(e)}), 500
 
-    # todo: verify auth token - code written, idk if functional
-    # todo: validate task data (title, description, due_date, priority) - code written, idk if functional
-    # todo: save task to database - code written, idk if functional
-    # todo: return created task data - code written, idk if functional
-
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 def update_task(task_id):
