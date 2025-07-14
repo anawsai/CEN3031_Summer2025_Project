@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import axios from 'axios';
+import api from './services/api';
 //pages
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
@@ -32,7 +32,7 @@ function App() {
 const addTask = async () => {
   if (newTask.title.trim() !== '') {
     try {
-      const response = await axios.post('http://localhost:5000/api/tasks', {
+      const response = await api.post('http://localhost:5000/api/tasks', {
         title: newTask.title,
         description: newTask.description,
         due_date: newTask.dueDate,
@@ -57,18 +57,16 @@ const addTask = async () => {
     }
   }
 };
-
-
-  //handle adding a new task
+  // // handle adding a new task
   // const addTask = () => {
   //   if (newTask.title.trim() !== '') {
-      // setTasks([...tasks, { ...newTask, completed: false, create_date: new Date().toISOString()}]);
-      // setNewTask({
-      //   title: '',
-      //   description: '',
-      //   dueDate: '',
-      //   priority: ''
-      // });
+  //     setTasks([...tasks, { ...newTask, completed: false, create_date: new Date().toISOString()}]);
+  //     setNewTask({
+  //       title: '',
+  //       description: '',
+  //       dueDate: '',
+  //       priority: ''
+  //     });
   //   }
   // };
 
