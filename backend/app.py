@@ -1,4 +1,5 @@
-from utils.database import init_supabase, test_connection
+from utils.database import init_supabase, test_connection, get_supabase_client, get_service_role_client
+from utils.auth import require_auth, get_or_create_user_profile
 from config import Config, config
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -8,21 +9,6 @@ import os
 
 # loads environment variables
 load_dotenv()
-
-url = os.getenv("SUPABASE_URL")
-
-# Working in backend so using service key
-key = os.getenv("SUPABASE_SERVICE_KEY")
-supabase: Client = create_client(url, key)
-
-# import our custom modules (uncomment as we develop)
-# from utils.firebase_auth import verify_token, create_user
-# from routes.auth import auth_bp
-# from routes.tasks import tasks_bp
-# from routes.schedule import schedule_bp
-# from routes.gamification import gamification_bp
-# from routes.collaboration import collaboration_bp
-# from routes.analytics import analytics_bp
 
 app = Flask(__name__)
 
@@ -40,9 +26,8 @@ try:
 except Exception as e:
     print(f"Failed to initialize Supabase: {e}")
 
+
 # basic health check route
-
-
 @app.route('/api/health')
 def health_check():
     """Enhanced health check endpoint with database connectivity"""
@@ -61,68 +46,178 @@ def health_check():
     })
 
 
-# todo: implement authentication routes
-
-
 @app.route('/api/auth/register', methods=['POST'])
 def register():
-    """register new user account - todo: implement user registration logic"""
+    """register new user account"""
+    try:
+        data = request.get_json()
 
-# TODO: Check for authenticator
-# TODO: validate input data and check if everything is as its supposed to
-# TODO: check if user already exists
-# TODO: store user data in supabase
-# TODO: return success response with user data
+        # validate required fields
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
 
-    data = request.get_json()
+        email = data.get('email')
+        password = data.get('password')
+        username = data.get('username')
+        major = data.get('major')
+        year = data.get('year')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
 
-    username = data.get('username')
-    email = data.get('email')
-    major = data.get('major')
-    year = data.get('year')
-    first_name = data.get('first_name')
-    last_name = data.get('last_name')
+        # validate required fields
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
 
-    response = (supabase.table("Users").insert({
-        "email":email,
-        "username":username,
-        "major":major,
-        "year":year, 
-        "first_name":first_name,
-        "last_name":last_name
-        }).execute()
-    )
-    
-    # Status Code 201: Signifies Successful Creation
-    if response.error is None:
-        return jsonify({"message": "User successfully created", "data": response.data }), 201
-    else:
-        return jsonify({"error": response.error}), 400
-    
-   
-   # return jsonify({'message': 'register endpoint - todo: implement'}), 501
+        if not username:
+            return jsonify({'error': 'Username is required'}), 400
+
+        supabase = get_supabase_client()
+
+        # check if username already exists
+        existing_username = supabase.table("Users").select(
+            "username").eq("username", username).execute()
+        if existing_username.data:
+            return jsonify({'error': 'Username already exists'}), 400
+
+        # create user with Supabase Auth (this handles password hashing, etc.)
+        auth_response = supabase.auth.sign_up({
+            'email': email,
+            'password': password
+        })
+
+        if not auth_response.user:
+            return jsonify({'error': 'Failed to create auth user'}), 400
+
+        service_supabase = get_service_role_client()
+
+        # create user profile in users table
+        user_profile_data = {
+            'auth_id': auth_response.user.id,  # link to supabase auth
+            'email': email,
+            'username': username,
+            'major': major,
+            'year': year,
+            'first_name': first_name,
+            'last_name': last_name,
+            'email_verified': False  # will be true after email confirmation
+        }
+
+        # insert into our custom users table
+        profile_response = service_supabase.table(
+            "Users").insert(user_profile_data).execute()
+
+        if profile_response.data:
+            return jsonify({
+                'message': 'User successfully created',
+                'user': {
+                    'id': profile_response.data[0]['id'],
+                    'email': email,
+                    'username': username,
+                    'major': major,
+                    'year': year,
+                    'first_name': first_name,
+                    'last_name': last_name
+                },
+                'access_token': auth_response.session.access_token if auth_response.session else None,
+                'note': 'Please check your email to verify your account'
+            }), 201
+        else:
+            return jsonify({'error': 'Failed to create user profile'}), 400
+
+    except Exception as e:
+        print(f"Registration error: {e}")
+        return jsonify({'error': 'Registration failed', 'details': str(e)}), 500
 
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
-    """authenticate user login - todo: implement login logic"""
-    # todo: validate credentials
-    # todo: verify with firebase auth
-    # todo: generate/return auth token
-    # todo: update last login time
-    return jsonify({'message': 'login endpoint - todo: implement'}), 501
+    """authenticate user login"""
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+
+        email = data.get('email')
+        password = data.get('password')
+
+        if not email or not password:
+            return jsonify({'error': 'Email and password are required'}), 400
+
+        supabase = get_supabase_client()
+
+        # authenticate with Supabase Auth
+        auth_response = supabase.auth.sign_in_with_password({
+            'email': email,
+            'password': password
+        })
+
+        if not auth_response.user:
+            return jsonify({'error': 'Invalid credentials'}), 401
+
+        print(f"Auth successful for user: {auth_response.user.id}")
+
+        # bypass RLS to get the user profile
+        try:
+            service_supabase = get_service_role_client()
+            user_profile_response = service_supabase.table('Users').select(
+                '*').eq('auth_id', auth_response.user.id).execute()
+
+            print(f"User profile query result: {user_profile_response.data}")
+
+            if user_profile_response.data:
+                user_profile = user_profile_response.data[0]
+                print(f"Found user profile: {user_profile}")
+            else:
+                print("No user profile found")
+                return jsonify({'error': 'User profile not found'}), 404
+
+        except Exception as profile_error:
+            print(f"Profile retrieval error: {profile_error}")
+            return jsonify({'error': 'Profile retrieval failed', 'details': str(profile_error)}), 500
+
+        return jsonify({
+            'message': 'Login successful',
+            'user': {
+                'id': user_profile['id'],
+                'email': user_profile['email'],
+                'username': user_profile['username'],
+                'major': user_profile.get('major'),
+                'year': user_profile.get('year'),
+                'first_name': user_profile.get('first_name'),
+                'last_name': user_profile.get('last_name'),
+                'email_verified': user_profile['email_verified']
+            },
+            'access_token': auth_response.session.access_token
+        }), 200
+
+    except Exception as e:
+        print(f"Login error: {e}")
+        return jsonify({'error': 'Login failed', 'details': str(e)}), 500
 
 
 @app.route('/api/auth/logout', methods=['POST'])
 def logout():
-    """logout user session - todo: implement logout logic"""
-    # todo: invalidate auth token
-    # todo: clear session data
-    return jsonify({'message': 'logout endpoint - todo: implement'}), 501
+    """logout user session"""
+    try:
+        supabase = get_supabase_client()
+
+        # get the authorization header
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({'error': 'No valid authorization token provided'}), 401
+
+        # sign out from supabase
+        supabase.auth.sign_out()
+
+        return jsonify({'message': 'Logout successful'}), 200
+
+    except Exception as e:
+        print(f"Logout error: {e}")
+        return jsonify({'error': 'Logout failed', 'details': str(e)}), 500
+
 
 # todo: implement task management routes
-
-
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
     """get all tasks for authenticated user - todo: implement task retrieval"""

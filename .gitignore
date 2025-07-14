@@ -1,0 +1,15 @@
+swamp_env/
+venv/
+env/
+node_modules/
+frontend/node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+.pytest_cache/
+.DS_Store
+Thumbs.db

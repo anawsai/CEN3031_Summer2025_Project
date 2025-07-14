@@ -26,6 +26,21 @@ def get_supabase_client():
     return supabase_client
 
 
+def get_service_role_client():
+    """get Supabase client with service role (bypasses RLS)"""
+    from supabase import create_client
+    import os
+
+    url = os.getenv('SUPABASE_URL')
+    # You'll need to add this to .env
+    service_key = os.getenv('SUPABASE_SERVICE_KEY')
+
+    if not url or not service_key:
+        raise Exception("Missing Supabase URL or Service Key")
+
+    return create_client(url, service_key)
+
+
 def test_connection():
     """Test the database connection"""
     try:
