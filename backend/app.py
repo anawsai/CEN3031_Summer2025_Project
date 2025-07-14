@@ -63,8 +63,8 @@ def register():
         username = data.get('username')
         major = data.get('major')
         year = data.get('year')
-        first_name = data.get('firstName')
-        last_name = data.get('lastName')
+        first_name = data.get('first_name')
+        last_name = data.get('last_name')
 
         # validate required fields
         if not email or not password:
@@ -234,7 +234,9 @@ def get_tasks():
 @jwt_required()
 def create_task():
     """create new task - todo: implement task creation"""
-    
+#TODO: have some sort of health check print statement for python terminal
+        # like "task completed successfully"
+
     # gets data from app.js task logic
     data = request.get_json()
     print("Parsed JSON data:", data)
@@ -297,6 +299,16 @@ def create_task():
         return jsonify({'error': 'Internal Error', 'details':str(e)}), 500
 
 
+@app.route('/api/tasks', methods=['GET'])
+@jwt_required
+def get_tasks():
+    """Gets tasks from database to display back to front end"""
+
+    #TODO: verify auth token
+    #TODO: check tasks associated to user
+    #TODO: validate tasks
+    #TODO: return tasks back to frontend
+
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 def update_task(task_id):
     """update existing task - todo: implement task updates"""
@@ -316,7 +328,6 @@ def delete_task(task_id):
     # todo: delete from database
     # todo: return success response
     return jsonify({'message': f'delete task {task_id} endpoint - todo: implement'}), 501
-
 
 @app.route('/api/tasks/<int:task_id>/complete', methods=['POST'])
 def complete_task(task_id):
@@ -494,11 +505,7 @@ if __name__ == '__main__':
     )
 
 # todo: major tasks for backend implementation:
-# 1. implement config.py with proper configuration classes
-# 2. set up database connection and models in utils/database.py
-# 3. implement firebase authentication in utils/firebase_auth.py
-# 4. create route modules in routes/ directory for better organization
-# 5. implement task crud operations with postgresql
+
 # 6. build adaptive scheduling algorithm
 # 7. create xp/gamification system with badges and achievements
 # 8. implement pomodoro timer session tracking
@@ -509,3 +516,12 @@ if __name__ == '__main__':
 # 13. add logging and monitoring
 # 14. write unit tests for all functionality
 # 15. optimize database queries and add caching where needed
+
+
+# COMPLETED:
+# 1. implement config.py with proper configuration classes
+# 2. set up database connection and models in utils/database.py
+# 3. implement supabase* authentication 
+# 5. implement task crud operations with postgresql
+# 4. create route modules in routes/ directory for better organization
+
