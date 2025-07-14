@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-
+import axios from 'axios';
 //pages
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
@@ -28,18 +28,49 @@ function App() {
   };
 
 
-  //handle adding a new task
-  const addTask = () => {
-    if (newTask.title.trim() !== '') {
-      setTasks([...tasks, { ...newTask, completed: false, create_date: new Date().toISOString()}]);
-      setNewTask({
+//handle adding a new task
+const addTask = async () => {
+  if (newTask.title.trim() !== '') {
+    try {
+      const response = await axios.post('http://localhost:5000/api/tasks', {
+        title: newTask.title,
+        description: newTask.description,
+        due_date: newTask.dueDate,
+        priority: newTask.priority,
+        create_date: new Date().toISOString()
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      setTasks([...tasks, response.data.task]);  // Add task from server response
+      setNewTask({  // Reset the form
         title: '',
         description: '',
         dueDate: '',
         priority: ''
       });
+    } catch (error) {
+      console.error('Error creating task:', error);
     }
-  };
+  }
+};
+
+
+  //handle adding a new task
+  // const addTask = () => {
+  //   if (newTask.title.trim() !== '') {
+      // setTasks([...tasks, { ...newTask, completed: false, create_date: new Date().toISOString()}]);
+      // setNewTask({
+      //   title: '',
+      //   description: '',
+      //   dueDate: '',
+      //   priority: ''
+      // });
+  //   }
+  // };
 
   //routing logic
   if (currentPage === 'home') {
