@@ -1,6 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { authAPI } from '../services/api';
 
 export function Login({ setCurrentPage, setIsAuthenticated }) {
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await authAPI.login(formData);
+
+      localStorage.setItem('access_token', response.access_token);
+      localStorage.setItem('user_data', JSON.stringify(response.user));
+
+      setIsAuthenticated(true);
+      setCurrentPage('dashboard');
+
+      console.log('Login successful:', response);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'beige', padding: '24px' }}>
       <button
@@ -28,8 +65,23 @@ export function Login({ setCurrentPage, setIsAuthenticated }) {
       }}>
         <h2 style={{ color: '#7dcea0', marginBottom: '24px' }}>Login</h2>
 
+        {error && (
+          <div style={{
+            backgroundColor: '#fee2e2',
+            color: '#dc2626',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '16px'
+          }}>
+            {error}
+          </div>
+        )}
+
         <input
           type="email"
+          name="email"
+          value={formData.email}
+          onChange={handleChange}
           placeholder="Email"
           style={{
             width: '100%',
@@ -42,6 +94,9 @@ export function Login({ setCurrentPage, setIsAuthenticated }) {
 
         <input
           type="password"
+          name="password"
+          value={formData.password}
+          onChange={handleChange}
           placeholder="Password"
           style={{
             width: '100%',
@@ -67,21 +122,19 @@ export function Login({ setCurrentPage, setIsAuthenticated }) {
         </p>
 
         <button 
-            onClick={() => {
-                setIsAuthenticated(true);
-                setCurrentPage('dashboard');
-        }}
-            style={{
-                width: '100%',
-                padding: '12px',
-                background: 'linear-gradient(135deg, #6B7B47, #7dcea0)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: 'pointer',
-                fontWeight: '600'
-        }}>
-          Log In
+          onClick={handleSubmit}
+          disabled={loading}
+          style={{
+            width: '100%',
+            padding: '12px',
+            background: loading ? '#ccc' : 'linear-gradient(135deg, #6B7B47, #7dcea0)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: loading ? 'not-allowed' : 'pointer',
+            fontWeight: '600'
+          }}>
+          {loading ? 'Logging in...' : 'Log In'}
         </button>
       </div>
     </div>
