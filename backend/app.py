@@ -4,9 +4,10 @@ from config import Config, config
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from dotenv import load_dotenv
+from supabase import create_client, Client
 import os
 
-# load environment variables
+# loads environment variables
 load_dotenv()
 
 app = Flask(__name__)
