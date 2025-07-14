@@ -2,6 +2,7 @@ from utils.database import init_supabase, test_connection, get_supabase_client, 
 from utils.auth import require_auth, get_or_create_user_profile
 from config import Config, config
 from flask import Flask, request, jsonify
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, create_access_token
 from flask_cors import CORS
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -17,6 +18,7 @@ config_name = os.getenv('FLASK_ENV', 'development')
 # enable cors for frontend communication
 app.config.from_object(config[config_name])
 
+jwt = JWTManager(app) 
 CORS(app)
 
 # initialize supabase connection
@@ -229,12 +231,27 @@ def get_tasks():
 
 
 @app.route('/api/tasks', methods=['POST'])
+@jwt_required()
 def create_task():
     """create new task - todo: implement task creation"""
+    data = request.get_json()
+    title=data.get('title')
+    description=data.get('description')
+    due_date=data.get('due_date')
+    priority=data.get('priority')
+    create_date=data.get('create_date')
+
+    if not title or not description or not due_date or not priority:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    user_id = get_jwt_identity()
+
+
     # todo: verify auth token
     # todo: validate task data (title, description, due_date, priority)
     # todo: save task to database
     # todo: return created task data
+
     return jsonify({'message': 'create task endpoint - todo: implement'}), 501
 
 
