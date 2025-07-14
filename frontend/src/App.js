@@ -16,7 +16,8 @@ function App() {
     description: '',
     dueDate: '',
     priority: '',
-    completed: false
+    completed: false,
+    create_date: new Date().toISOString()
   });
 
   const toggleComplete = (taskIndex) => {
@@ -30,7 +31,7 @@ function App() {
   //handle adding a new task
   const addTask = () => {
     if (newTask.title.trim() !== '') {
-      setTasks([...tasks, { ...newTask, completed: false }]);
+      setTasks([...tasks, { ...newTask, completed: false, create_date: new Date().toISOString()}]);
       setNewTask({
         title: '',
         description: '',
