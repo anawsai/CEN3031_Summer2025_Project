@@ -63,8 +63,8 @@ def register():
         username = data.get('username')
         major = data.get('major')
         year = data.get('year')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
+        first_name = data.get('firstName')
+        last_name = data.get('lastName')
 
         # validate required fields
         if not email or not password:
