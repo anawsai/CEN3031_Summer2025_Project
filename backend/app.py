@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 import os
 
+# test comment to be able to download functioning build on laptop
+
 # loads environment variables
 load_dotenv()
 
