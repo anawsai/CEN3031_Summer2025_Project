@@ -10,6 +10,7 @@ class Config:
     SUPABASE_URL = os.getenv('SUPABASE_URL')
     SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY')
     SUPABASE_SERVICE_KEY = os.getenv('SUPABASE_SERVICE_KEY')
+    JWT_SECRET_KEY = os.getenv('SUPABASE_JWT_LEGACY_KEY')
 
 
 class DevelopmentConfig(Config):

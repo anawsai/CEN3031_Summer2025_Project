@@ -234,25 +234,72 @@ def get_tasks():
 @jwt_required()
 def create_task():
     """create new task - todo: implement task creation"""
+    
+    # gets data from app.js task logic
     data = request.get_json()
+    print("Parsed JSON data:", data)
+
+    if not data:
+        return jsonify({'error': 'No JSON data received'}), 400
+
     title=data.get('title')
     description=data.get('description')
     due_date=data.get('due_date')
     priority=data.get('priority')
     create_date=data.get('create_date')
 
+    # checks for title, description, and priority
     if not title or not description or not due_date or not priority:
         return jsonify({'error': 'Missing required fields'}), 400
 
-    user_id = get_jwt_identity()
+    auth_id = get_jwt_identity()
+    service_supabase = get_service_role_client()
+    user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
 
+    print(f"User profile query result: {user_response.data}")
 
-    # todo: verify auth token
-    # todo: validate task data (title, description, due_date, priority)
-    # todo: save task to database
-    # todo: return created task data
+    if user_response.data:
+        user_profile = user_response.data[0]
+        print(f"Found user profile: {user_profile}")
+    else:
+        print("No user profile found")
+        return jsonify({'error': 'User profile not found'}), 404
+    
+    user_id = user_response.data[0]['id']
 
-    return jsonify({'message': 'create task endpoint - todo: implement'}), 501
+    task_data = {
+        'user_id' : user_id,
+        'title' : title,
+        'description' : description,
+        'due_date' : due_date,
+        'priority' : priority,
+        'completed' : False,
+        'create_date' : create_date,
+        'updated_date' : create_date, # the last time task would have been updated was on creation
+        'completed_date' : None
+    }
+
+    # inserts task_data into tasks DB schema
+    try:
+        task_response = service_supabase.table("Tasks").insert(task_data).execute()
+
+        if task_response.data:
+            return jsonify({
+                'message': 'Task created successfully',
+                'task': task_response.data[0]
+            }), 201
+        else:
+            return jsonify({'error': 'Error inserting task'}), 500
+    
+    except Exception as e:
+        # returns error
+        print(f"Error inserting task: {e}")
+        return jsonify({'error': 'Internal Error', 'details':str(e)}), 500
+
+    # todo: verify auth token - code written, idk if functional
+    # todo: validate task data (title, description, due_date, priority) - code written, idk if functional
+    # todo: save task to database - code written, idk if functional
+    # todo: return created task data - code written, idk if functional
 
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
