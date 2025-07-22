@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { authAPI } from '../services/api';
 
 export function Signup({ setCurrentPage, setIsAuthenticated }) {
   const [step, setStep] = useState(1);
@@ -11,6 +12,8 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     email: '',
     password: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
@@ -27,10 +30,28 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSubmit = () => {
-    console.log(formData);
-    setIsAuthenticated(true);
-    setCurrentPage('dashboard');
+  const handleSubmit = async () => {
+    setLoading(true);
+    setError('');
+
+    try {
+      const response = await authAPI.register(formData);
+
+      if (response.access_token) {
+        localStorage.setItem('access_token', response.access_token);
+        localStorage.setItem('user_data', JSON.stringify(response.user));
+      }
+
+      setIsAuthenticated(true);
+      setCurrentPage('dashboard');
+
+      console.log('Registration successful:', response);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Registration failed. Please try again.');
+      console.error('Registration error:', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const progressPercent = (step / 3) * 100;
@@ -61,6 +82,18 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
         boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
       }}>
         <h2 style={{ color: '#7dcea0', marginBottom: '24px' }}>Sign Up</h2>
+
+        {error && (
+          <div style={{
+            backgroundColor: '#fee2e2',
+            color: '#dc2626',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '16px'
+          }}>
+            {error}
+          </div>
+        )}
 
         <div style={{ height: '10px', width: '100%', backgroundColor: '#eee', borderRadius: '5px', marginBottom: '20px' }}>
           <div style={{
@@ -145,7 +178,13 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
             <button onClick={handleNext} style={buttonStyle}>Next</button>
           )}
           {step === 3 && (
-            <button onClick={handleSubmit} style={buttonStyle}>Sign Up</button>
+            <button onClick={handleSubmit} disabled={loading} style={{
+              ...buttonStyle,
+              background: loading ? '#ccc' : 'linear-gradient(135deg, #6B7B47, #7dcea0)',
+              cursor: loading ? 'not-allowed' : 'pointer'
+            }}>
+              {loading ? 'Signing up...' : 'Sign Up'}
+            </button>
           )}
         </div>
       </div>
@@ -170,4 +209,3 @@ const buttonStyle = {
   cursor: 'pointer',
   fontWeight: '600'
 };
-

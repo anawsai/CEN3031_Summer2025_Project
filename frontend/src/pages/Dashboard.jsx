@@ -1,6 +1,7 @@
 import React from 'react';
+import styles from '../styles/dashboard.module.css';
 
-export function Dashboard({ setCurrentPage }) {
+export function Dashboard({ tasks, setCurrentPage, toggleComplete }) {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'beige', padding: '24px' }}>
       <h1 style={{ color: '#7dcea0', fontSize: '32px', fontWeight: 'bold', marginBottom: '24px' }}>
@@ -16,40 +17,69 @@ export function Dashboard({ setCurrentPage }) {
         gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
         gap: '20px'
       }}>
-        {/* Feature Buttons */}
-        <button onClick={() => setCurrentPage('tasks')} style={cardStyle}>
-           Create Tasks
-        </button>
-        <button onClick={() => setCurrentPage('schedule')} style={cardStyle}>
-           View Adaptive Schedule
-        </button>
-        <button onClick={() => setCurrentPage('xp')} style={cardStyle}>
-            XP & Achievements
-        </button>
-        <button onClick={() => setCurrentPage('pomodoro')} style={cardStyle}>
-           Start Pomodoro Timer
-        </button>
-        <button onClick={() => setCurrentPage('shared')} style={cardStyle}>
-           Shared Task Boards
-        </button>
-        <button onClick={() => setCurrentPage('analytics')} style={cardStyle}>
-           View Analytics
-        </button>
+
+        {/* My Tasks */}
+        <div onClick={() => setCurrentPage('tasks')} className={styles.card}>
+          <h3>My Tasks</h3>
+
+          {tasks.length === 0 && (
+            <p style={{ color: '#777', fontSize: '14px' }}>
+              No tasks yet. Click to add your first task!
+            </p>
+          )}
+
+          {tasks.length > 0 && (
+            <div>
+              {tasks.slice(0, 3).map((task, index) => (
+                <div
+                  key={index}
+                  className={`${styles.taskItem} ${task.completed ? styles.taskItemCompleted : styles.taskItemIncomplete}`}
+                >
+                  <div>
+                    <strong>{task.title}</strong>
+                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#777' }}>
+                      Due: {task.dueDate || 'N/A'} | Priority: {task.priority || 'N/A'}
+                    </p>
+                  </div>
+
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleComplete(index);
+                    }}
+                    className={`${styles.toggleComplete} ${task.completed ? styles.completed : ''}`}
+                    title={task.completed ? 'Completed' : 'Mark as Done'}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          {tasks.length > 3 && (
+            <p style={{ color: '#777', fontSize: '14px' }}>
+              ...and {tasks.length - 3} more tasks
+            </p>
+          )}
+        </div>
+
+        {/* Pomodoro Timer */}
+        <div className={styles.card}>
+          <h3>Pomodoro Timer</h3>
+          <div className={styles.pomodoroCircle}></div>
+          <p style={{ textAlign: 'center', color: '#777' }}>
+            Unlock prizes as you complete tasks!
+          </p>
+        </div>
+
+        {/* Progress / Analytics */}
+        <div className={styles.card}>
+          <h3>Progress / Analytics</h3>
+          <p style={{ color: '#777' }}>
+            Track your focus, productivity, and XP here.
+          </p>
+        </div>
+
       </div>
     </div>
   );
 }
-
-const cardStyle = {
-  padding: '24px',
-  backgroundColor: 'white',
-  borderRadius: '12px',
-  border: '1px solid #ccc',
-  fontSize: '18px',
-  fontWeight: '600',
-  color: '#6B7B47',
-  cursor: 'pointer',
-  transition: 'transform 0.2s',
-  boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
-  textAlign: 'left'
-};

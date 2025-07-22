@@ -2,6 +2,7 @@ from utils.database import init_supabase, test_connection, get_supabase_client, 
 from utils.auth import require_auth, get_or_create_user_profile
 from config import Config, config
 from flask import Flask, request, jsonify
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, create_access_token
 from flask_cors import CORS
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -17,6 +18,7 @@ config_name = os.getenv('FLASK_ENV', 'development')
 # enable cors for frontend communication
 app.config.from_object(config[config_name])
 
+jwt = JWTManager(app) 
 CORS(app)
 
 # initialize supabase connection
@@ -61,8 +63,8 @@ def register():
         username = data.get('username')
         major = data.get('major')
         year = data.get('year')
-        first_name = data.get('first_name')
-        last_name = data.get('last_name')
+        first_name = data.get('firstName')
+        last_name = data.get('lastName')
 
         # validate required fields
         if not email or not password:
@@ -219,23 +221,101 @@ def logout():
 
 # todo: implement task management routes
 @app.route('/api/tasks', methods=['GET'])
+@jwt_required() # verify auth token
 def get_tasks():
     """get all tasks for authenticated user - todo: implement task retrieval"""
-    # todo: verify auth token
-    # todo: get user id from token
-    # todo: query tasks from database
-    # todo: return tasks with proper formatting
-    return jsonify({'message': 'get tasks endpoint - todo: implement'}), 501
+   
+    try:
+        # get user id from token
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+    # query tasks from database
+        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+
+        if not user_response.data:
+            return jsonify({'error': 'User profile not found'}), 404
+        
+        user_id = user_response.data[0]['id']
+
+        # query tasks from database
+        tasks_response = service_supabase.table('Tasks').select('*').eq('user_id', user_id).execute()
+
+        # return tasks with proper formatting
+        return jsonify({
+            'tasks': tasks_response.data
+        }), 200
+    
+    except Exception as e:
+            print(f"Error retrieving tasks: {e}")
+            return jsonify({'error': 'Failed to retrieve tasks', 'details': str(e)}), 500   
 
 
 @app.route('/api/tasks', methods=['POST'])
+@jwt_required()
 def create_task():
     """create new task - todo: implement task creation"""
-    # todo: verify auth token
-    # todo: validate task data (title, description, due_date, priority)
-    # todo: save task to database
-    # todo: return created task data
-    return jsonify({'message': 'create task endpoint - todo: implement'}), 501
+    
+    # gets data from app.js task logic
+    data = request.get_json()
+    print("Parsed JSON data:", data)
+
+    if not data:
+        return jsonify({'error': 'No JSON data received'}), 400
+
+    title=data.get('title')
+    description=data.get('description')
+    due_date=data.get('due_date')
+    priority=data.get('priority')
+    create_date=data.get('create_date')
+
+    # checks for title, description, and priority
+    if not title or not description or not due_date or not priority:
+        return jsonify({'error': 'Missing required fields'}), 400
+
+    auth_id = get_jwt_identity()
+    service_supabase = get_service_role_client()
+    user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+
+    print(f"User profile query result: {user_response.data}")
+
+    if user_response.data:
+        user_profile = user_response.data[0]
+        print(f"Found user profile: {user_profile}")
+    else:
+        print("No user profile found")
+        return jsonify({'error': 'User profile not found'}), 404
+    
+    user_id = user_response.data[0]['id']
+
+    task_data = {
+        'user_id' : user_id,
+        'title' : title,
+        'description' : description,
+        'due_date' : due_date,
+        'priority' : priority,
+        'completed' : False,
+        'create_date' : create_date,
+        'updated_date' : create_date, # the last time task would have been updated was on creation
+        'completed_date' : None
+    }
+
+    # inserts task_data into tasks DB schema
+    try:
+        task_response = service_supabase.table("Tasks").insert(task_data).execute()
+
+        if task_response.data:
+            return jsonify({
+                'message': 'Task created successfully',
+                'task': task_response.data[0]
+            }), 201
+        else:
+            return jsonify({'error': 'Error inserting task'}), 500
+    
+    except Exception as e:
+        # returns error
+        print(f"Error inserting task: {e}")
+        return jsonify({'error': 'Internal Error', 'details':str(e)}), 500
 
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])

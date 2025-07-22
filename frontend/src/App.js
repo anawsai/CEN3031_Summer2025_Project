@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-
+import React, {useState, useEffect} from 'react';
+import api from './services/api';
 //pages
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
@@ -16,7 +16,8 @@ function App() {
     description: '',
     dueDate: '',
     priority: '',
-    completed: false
+    completed: false,
+    create_date: new Date().toISOString()
   });
 
   const toggleComplete = (taskIndex) => {
@@ -27,18 +28,52 @@ function App() {
   };
 
 
-  //handle adding a new task
-  const addTask = () => {
-    if (newTask.title.trim() !== '') {
-      setTasks([...tasks, { ...newTask, completed: false }]);
-      setNewTask({
+//handle adding a new task
+const addTask = async () => {
+  if (newTask.title.trim() !== '') {
+    try {
+      const response = await api.post('http://localhost:5000/api/tasks', {
+        title: newTask.title,
+        description: newTask.description,
+        due_date: newTask.dueDate,
+        priority: newTask.priority,
+        create_date: new Date().toISOString()
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      
+      setTasks([...tasks, response.data.task]);  // Add task from server response
+      setNewTask({  // Reset the form
         title: '',
         description: '',
         dueDate: '',
         priority: ''
       });
+    } catch (error) {
+      console.error('Error creating task:', error);
     }
-  };
+  }
+};
+
+//fetch tasks on initial load
+const fetchTasks = async () => {
+  try {
+    const response = await api.get('/tasks');
+    setTasks(response.data.tasks);
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+  }
+};
+
+//useEffect to fetch tasks when authenticated
+useEffect(() => {
+  if (isAuthenticated) {
+    fetchTasks();
+  }
+}, [isAuthenticated]);
 
   //routing logic
   if (currentPage === 'home') {
@@ -56,6 +91,7 @@ function App() {
         setNewTask={setNewTask}
         addTask={addTask}
         setCurrentPage={setCurrentPage}
+        toggleComplete={toggleComplete}
       />
     );
   }

@@ -8,6 +8,7 @@ export function Home({ setCurrentPage }) {
 
   return (
     <div style={{ minHeight: '100%', backgroundColor: 'beige' }}>
+
       {/* Header */}
       <header style={{ padding: '24px' }}>
         <div style={{
@@ -15,6 +16,7 @@ export function Home({ setCurrentPage }) {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
+          
           {/* Logo + Title */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <img 
