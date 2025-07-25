@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 import os
 
-# test comment to be able to download functioning build on laptop
+# this is just a test branch to see if usernames would be better
 
 # loads environment variables
 load_dotenv()
@@ -76,7 +76,7 @@ def register():
         supabase = get_supabase_client()
 
         # check if email already exists
-        existing_email = supabase.table("Users").select(
+        existing_email = supabase.table("Users_usernameless").select(
             "email").eq("email", email).execute()
         if existing_email.data:
             return jsonify({'error': 'Email already exists'}), 400
@@ -105,7 +105,7 @@ def register():
 
         # insert into our custom users table
         profile_response = service_supabase.table(
-            "Users").insert(user_profile_data).execute()
+            "Users_usernameless").insert(user_profile_data).execute()
 
         if profile_response.data:
             return jsonify({
@@ -160,7 +160,7 @@ def login():
         # bypass RLS to get the user profile
         try:
             service_supabase = get_service_role_client()
-            user_profile_response = service_supabase.table('Users').select(
+            user_profile_response = service_supabase.table('Users_usernameless').select(
                 '*').eq('auth_id', auth_response.user.id).execute()
 
             print(f"User profile query result: {user_profile_response.data}")
@@ -242,7 +242,7 @@ def create_task():
 
     auth_id = get_jwt_identity()
     service_supabase = get_service_role_client()
-    user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+    user_response = service_supabase.table('Users_usernameless').select('id').eq('auth_id', auth_id).execute()
 
     print(f"User profile query result: {user_response.data}")
 
@@ -292,7 +292,7 @@ def get_tasks():
         service_supabase = get_service_role_client()
 
         # get user profile
-        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+        user_response = service_supabase.table('Users_usernameless').select('id').eq('auth_id', auth_id).execute()
         if not user_response.data:
             return jsonify({'error': 'User profile not found'}), 404
 
