@@ -62,7 +62,6 @@ def register():
 
         email = data.get('email')
         password = data.get('password')
-        username = data.get('username')
         major = data.get('major')
         year = data.get('year')
         first_name = data.get('firstName')
@@ -72,16 +71,15 @@ def register():
         if not email or not password:
             return jsonify({'error': 'Email and password are required'}), 400
 
-        if not username:
-            return jsonify({'error': 'Username is required'}), 400
+
 
         supabase = get_supabase_client()
 
-        # check if username already exists
-        existing_username = supabase.table("Users").select(
-            "username").eq("username", username).execute()
-        if existing_username.data:
-            return jsonify({'error': 'Username already exists'}), 400
+        # check if email already exists
+        existing_email = supabase.table("Users").select(
+            "email").eq("email", email).execute()
+        if existing_email.data:
+            return jsonify({'error': 'Email already exists'}), 400
 
         # create user with Supabase Auth (this handles password hashing, etc.)
         auth_response = supabase.auth.sign_up({
@@ -98,7 +96,6 @@ def register():
         user_profile_data = {
             'auth_id': auth_response.user.id,  # link to supabase auth
             'email': email,
-            'username': username,
             'major': major,
             'year': year,
             'first_name': first_name,
@@ -116,7 +113,6 @@ def register():
                 'user': {
                     'id': profile_response.data[0]['id'],
                     'email': email,
-                    'username': username,
                     'major': major,
                     'year': year,
                     'first_name': first_name,
@@ -185,7 +181,6 @@ def login():
             'user': {
                 'id': user_profile['id'],
                 'email': user_profile['email'],
-                'username': user_profile['username'],
                 'major': user_profile.get('major'),
                 'year': user_profile.get('year'),
                 'first_name': user_profile.get('first_name'),

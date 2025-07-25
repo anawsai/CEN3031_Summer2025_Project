@@ -6,7 +6,6 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    username: '',
     major: '',
     year: '',
     email: '',
@@ -118,13 +117,6 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
               value={formData.lastName}
               onChange={handleChange}
               placeholder="Last Name"
-              style={inputStyle}
-            />
-            <input
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="Username"
               style={inputStyle}
             />
           </>
