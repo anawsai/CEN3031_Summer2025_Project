@@ -27,6 +27,25 @@ function App() {
     setTasks(updatedTasks);
   };
 
+const fetchTasks = async() => {
+  try{
+      const response = await api.get('http://localhost:5000/api/tasks', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+      });
+  setTasks(response.data.tasks || []);
+  } catch (error) {
+    console.error('Error fetching task(s): ', error)
+  }
+};
+
+useEffect(() => {
+  if (isAuthenticated) {
+    fetchTasks();
+  }
+}, [isAuthenticated]);
+
 
 //handle adding a new task
 const addTask = async () => {
@@ -44,9 +63,10 @@ const addTask = async () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
-      setTasks([...tasks, response.data.task]);  // Add task from server response
-      setNewTask({  // Reset the form
+      await fetchTasks();
+      // hectors initial code for i front-end display i presume
+      setTasks([...tasks, response.data.task]); 
+      setNewTask({  
         title: '',
         description: '',
         dueDate: '',
@@ -58,22 +78,6 @@ const addTask = async () => {
   }
 };
 
-//fetch tasks on initial load
-const fetchTasks = async () => {
-  try {
-    const response = await api.get('/tasks');
-    setTasks(response.data.tasks);
-  } catch (error) {
-    console.error('Error fetching tasks:', error);
-  }
-};
-
-//useEffect to fetch tasks when authenticated
-useEffect(() => {
-  if (isAuthenticated) {
-    fetchTasks();
-  }
-}, [isAuthenticated]);
 
   //routing logic
   if (currentPage === 'home') {

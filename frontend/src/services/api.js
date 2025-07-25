@@ -44,12 +44,4 @@ export const authAPI = {
   }
 };
 
-// Tasks API functions
-export const tasksAPI = {
-  getTasks: async () => {
-    const response = await api.get('/tasks');
-    return response.data.tasks;
-  }
-};
-
 export default api;
