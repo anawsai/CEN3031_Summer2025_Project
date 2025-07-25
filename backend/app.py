@@ -221,17 +221,6 @@ def logout():
         return jsonify({'error': 'Logout failed', 'details': str(e)}), 500
 
 
-# todo: implement task management routes
-@app.route('/api/tasks', methods=['GET'])
-def get_tasks():
-    """get all tasks for authenticated user - todo: implement task retrieval"""
-    # todo: verify auth token
-    # todo: get user id from token
-    # todo: query tasks from database
-    # todo: return tasks with proper formatting
-    return jsonify({'message': 'get tasks endpoint - todo: implement'}), 501
-
-
 @app.route('/api/tasks', methods=['POST'])
 @jwt_required()
 def create_task():
@@ -300,16 +289,31 @@ def create_task():
         print(f"Error inserting task: {e}")
         return jsonify({'error': 'Internal Error', 'details':str(e)}), 500
 
-
 @app.route('/api/tasks', methods=['GET'])
-@jwt_required
+@jwt_required()
 def get_tasks():
-    """Gets tasks from database to display back to front end"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
 
-    #TODO: verify auth token
-    #TODO: check tasks associated to user
-    #TODO: validate tasks
-    #TODO: return tasks back to frontend
+        # get user profile
+        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+        if not user_response.data:
+            return jsonify({'error': 'User profile not found'}), 404
+
+        user_id = user_response.data[0]['id']
+
+        # use user_id, not auth_id
+        task_response = service_supabase.table('Tasks').select('*').eq('user_id', user_id).execute()
+        tasks = task_response.data if task_response.data else []
+
+        return jsonify({'tasks': tasks}), 200
+
+    except Exception as e:
+        print(f"Error fetching tasks: {e}")
+        return jsonify({'error': 'Internal Server Error', 'details': str(e)}), 500
+
+        
 
 @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
 def update_task(task_id):

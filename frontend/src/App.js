@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import api from './services/api';
 //pages
 import { Login } from './pages/Login';
@@ -27,6 +27,25 @@ function App() {
     setTasks(updatedTasks);
   };
 
+const fetchTasks = async() => {
+  try{
+      const response = await api.get('http://localhost:5000/api/tasks', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+      });
+  setTasks(response.data.tasks || []);
+  } catch (error) {
+    console.error('Error fetching task(s): ', error)
+  }
+};
+
+useEffect(() => {
+  if (isAuthenticated) {
+    fetchTasks();
+  }
+}, [isAuthenticated]);
+
 
 //handle adding a new task
 const addTask = async () => {
@@ -44,9 +63,10 @@ const addTask = async () => {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
       });
-      
-      setTasks([...tasks, response.data.task]);  // Add task from server response
-      setNewTask({  // Reset the form
+      await fetchTasks();
+      // hectors initial code for i front-end display i presume
+      setTasks([...tasks, response.data.task]); 
+      setNewTask({  
         title: '',
         description: '',
         dueDate: '',
@@ -57,18 +77,7 @@ const addTask = async () => {
     }
   }
 };
-  // // handle adding a new task
-  // const addTask = () => {
-  //   if (newTask.title.trim() !== '') {
-  //     setTasks([...tasks, { ...newTask, completed: false, create_date: new Date().toISOString()}]);
-  //     setNewTask({
-  //       title: '',
-  //       description: '',
-  //       dueDate: '',
-  //       priority: ''
-  //     });
-  //   }
-  // };
+
 
   //routing logic
   if (currentPage === 'home') {
