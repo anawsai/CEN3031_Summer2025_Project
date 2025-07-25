@@ -3,7 +3,6 @@ from utils.auth import require_auth, get_or_create_user_profile
 from config import Config, config
 from flask import Flask, request, jsonify
 from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, create_access_token
-from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, create_access_token
 from flask_cors import CORS
 from dotenv import load_dotenv
 from supabase import create_client, Client
@@ -21,8 +20,7 @@ config_name = os.getenv('FLASK_ENV', 'development')
 # enable cors for frontend communication
 app.config.from_object(config[config_name])
 
-jwt = JWTManager(app) 
-jwt = JWTManager(app) 
+jwt = JWTManager(app)  
 CORS(app)
 
 # initialize supabase connection
@@ -221,17 +219,6 @@ def logout():
     except Exception as e:
         print(f"Logout error: {e}")
         return jsonify({'error': 'Logout failed', 'details': str(e)}), 500
-
-
-# todo: implement task management routes
-@app.route('/api/tasks', methods=['GET'])
-def get_tasks():
-    """get all tasks for authenticated user - todo: implement task retrieval"""
-    # todo: verify auth token
-    # todo: get user id from token
-    # todo: query tasks from database
-    # todo: return tasks with proper formatting
-    return jsonify({'message': 'get tasks endpoint - todo: implement'}), 501
 
 
 @app.route('/api/tasks', methods=['POST'])
