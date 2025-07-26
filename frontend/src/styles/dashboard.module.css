@@ -61,3 +61,36 @@
     justify-content: center;
     font-size: 40px;
   }
+
+  .logoutIconButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    padding: 4px;
+  }
+  
+  .logoutIcon {
+    width: 28px;
+    height: 28px;
+    color: #4A5D23;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .logoutIconButton:hover .logoutIcon {
+    transform: scale(1.2);
+    color: #6B7B47;
+  }
+  
+  .topBar {
+    position: relative;
+    margin-bottom: 32px;
+  }
+  
+  .dashboardTitle {
+    color: #7dcea0;
+    font-size: 32px;
+    font-weight: bold;
+  }

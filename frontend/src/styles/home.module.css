@@ -1,0 +1,85 @@
+.pageContainer {
+    min-height: 100%;
+    background-color: beige;
+  }
+  
+  .header {
+    padding: 24px;
+  }
+  
+  .headerContent {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .logoSection {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  
+  .logoImage {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .logoText {
+    font-size: 32px;
+    font-weight: bold;
+    color: #7dcea0;
+    margin: 0;
+  }
+  
+  .authButtons {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  
+  .signupButton {
+    background: transparent;
+    color: #7dcea0;
+    padding: 8px 16px;
+    border: 1px solid #7dcea0;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .loginButton {
+    background: linear-gradient(135deg, #6B7B47, #7dcea0);
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+  }
+  
+  .mainContent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    min-height: 100vh;
+  }
+  
+  .welcomeBox {
+    text-align: center;
+    max-width: 600px;
+  }
+  
+  .welcomeHeading {
+    font-size: 60px;
+    font-weight: bold;
+    margin-bottom: 16px;
+    color: #7dcea0;
+  }
+  
+  .welcomeText {
+    font-size: 20px;
+    color: #78716c;
+    margin-bottom: 32px;
+  }
+  

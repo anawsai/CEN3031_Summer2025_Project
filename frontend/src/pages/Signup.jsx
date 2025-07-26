@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { authAPI } from '../services/api';
+import styles from '../styles/signup.module.css';
 
 export function Signup({ setCurrentPage, setIsAuthenticated }) {
   const [step, setStep] = useState(1);
@@ -16,10 +17,7 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleNext = () => {
@@ -33,22 +31,16 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
   const handleSubmit = async () => {
     setLoading(true);
     setError('');
-
     try {
       const response = await authAPI.register(formData);
-
       if (response.access_token) {
         localStorage.setItem('access_token', response.access_token);
         localStorage.setItem('user_data', JSON.stringify(response.user));
       }
-
       setIsAuthenticated(true);
       setCurrentPage('dashboard');
-
-      console.log('Registration successful:', response);
     } catch (err) {
       setError(err.response?.data?.error || 'Registration failed. Please try again.');
-      console.error('Registration error:', err);
     } finally {
       setLoading(false);
     }
@@ -57,132 +49,54 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
   const progressPercent = (step / 3) * 100;
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'beige', padding: '24px' }}>
-      <button
-        onClick={() => setCurrentPage('home')}
-        style={{
-          background: 'transparent',
-          color: '#7dcea0',
-          border: '1px solid #7dcea0',
-          borderRadius: '8px',
-          padding: '8px 16px',
-          marginBottom: '24px',
-          cursor: 'pointer',
-        }}
-      >
+    <div className={styles.page}>
+      <button onClick={() => setCurrentPage('home')} className={styles.backButton}>
         ← Back to Home
       </button>
 
-      <div style={{
-        maxWidth: '400px',
-        margin: '0 auto',
-        backgroundColor: 'white',
-        padding: '32px',
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-      }}>
-        <h2 style={{ color: '#7dcea0', marginBottom: '24px' }}>Sign Up</h2>
+      <div className={styles.formContainer}>
+        <h2 className={styles.title}>Sign Up</h2>
 
-        {error && (
-          <div style={{
-            backgroundColor: '#fee2e2',
-            color: '#dc2626',
-            padding: '12px',
-            borderRadius: '8px',
-            marginBottom: '16px'
-          }}>
-            {error}
-          </div>
-        )}
+        {error && <div className={styles.errorBox}>{error}</div>}
 
-        <div style={{ height: '10px', width: '100%', backgroundColor: '#eee', borderRadius: '5px', marginBottom: '20px' }}>
-          <div style={{
-            width: `${progressPercent}%`,
-            height: '100%',
-            backgroundColor: '#7dcea0',
-            borderRadius: '5px'
-          }}></div>
+        <div className={styles.progressBar}>
+          <div
+            className={styles.progressFill}
+            style={{ width: `${progressPercent}%` }}
+          ></div>
         </div>
 
         {step === 1 && (
           <>
-            <input
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="First Name"
-              style={inputStyle}
-            />
-            <input
-              name="lastName"
-              value={formData.lastName}
-              onChange={handleChange}
-              placeholder="Last Name"
-              style={inputStyle}
-            />
-            <input
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              placeholder="Username"
-              style={inputStyle}
-            />
+            <input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First Name" className={styles.input} />
+            <input name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last Name" className={styles.input} />
+            <input name="username" value={formData.username} onChange={handleChange} placeholder="Username" className={styles.input} />
           </>
         )}
 
         {step === 2 && (
           <>
-            <input
-              name="major"
-              value={formData.major}
-              onChange={handleChange}
-              placeholder="Major"
-              style={inputStyle}
-            />
-            <input
-              name="year"
-              value={formData.year}
-              onChange={handleChange}
-              placeholder="Year"
-              style={inputStyle}
-            />
+            <input name="major" value={formData.major} onChange={handleChange} placeholder="Major" className={styles.input} />
+            <input name="year" value={formData.year} onChange={handleChange} placeholder="Year" className={styles.input} />
           </>
         )}
 
         {step === 3 && (
           <>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Email"
-              style={inputStyle}
-            />
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Password"
-              style={inputStyle}
-            />
+            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className={styles.input} />
+            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className={styles.input} />
           </>
         )}
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
-          {step > 1 && (
-            <button onClick={handleBack} style={buttonStyle}>Back</button>
-          )}
-          {step < 3 && (
-            <button onClick={handleNext} style={buttonStyle}>Next</button>
-          )}
+        <div className={styles.buttonRow}>
+          {step > 1 && <button onClick={handleBack} className={styles.button}>Back</button>}
+          {step < 3 && <button onClick={handleNext} className={styles.button}>Next</button>}
           {step === 3 && (
-            <button onClick={handleSubmit} disabled={loading} style={{
-              ...buttonStyle,
-              background: loading ? '#ccc' : 'linear-gradient(135deg, #6B7B47, #7dcea0)',
-              cursor: loading ? 'not-allowed' : 'pointer'
-            }}>
+            <button
+              onClick={handleSubmit}
+              disabled={loading}
+              className={loading ? styles.buttonDisabled : styles.button}
+            >
               {loading ? 'Signing up...' : 'Sign Up'}
             </button>
           )}
@@ -192,20 +106,3 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
   );
 }
 
-const inputStyle = {
-  width: '100%',
-  padding: '12px',
-  marginBottom: '16px',
-  borderRadius: '8px',
-  border: '1px solid #ccc'
-};
-
-const buttonStyle = {
-  background: 'linear-gradient(135deg, #6B7B47, #7dcea0)',
-  color: 'white',
-  padding: '12px 20px',
-  border: 'none',
-  borderRadius: '8px',
-  cursor: 'pointer',
-  fontWeight: '600'
-};

@@ -1,0 +1,56 @@
+.container {
+    background-color: white;
+    padding: 20px;
+    border-radius: 15px;
+  }
+  
+  .heading {
+    color: #7dcea0;
+    margin-bottom: 15px;
+  }
+  
+  .taskItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #eee;
+  }
+  
+  .completed {
+    background-color: #d4edda;
+  }
+  
+  .incomplete {
+    background-color: #f9f9f9;
+  }
+  
+  .title {
+    margin: 0;
+  }
+  
+  .description {
+    margin: 4px 0;
+  }
+  
+  .details {
+    margin: 4px 0;
+    font-size: 14px;
+    color: #777;
+  }
+  
+  .toggleComplete {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid #4A5D23;
+    cursor: pointer;
+    margin-left: 12px;
+  }
+  
+  .checked {
+    background-color: #4A5D23;
+  }
+  

@@ -1,49 +1,31 @@
 import React from 'react';
-
+import styles from '../styles/tasklist.module.css';
 
 export function TaskList({ tasks, toggleComplete }) {
   if (tasks.length === 0) return null;
 
   return (
-    <div style={{
-      backgroundColor: 'white',
-      padding: '20px',
-      borderRadius: '15px',
-    }}>
-      <h3 style={{ color: '#7dcea0', marginBottom: '15px' }}>
+    <div className={styles.container}>
+      <h3 className={styles.heading}>
         Your Tasks ({tasks.length})
       </h3>
 
       {tasks.map((task, index) => (
-        <div key={index} style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          padding: '15px',
-          margin: '10px 0',
-          backgroundColor: task.completed ? '#d4edda' : '#f9f9f9',
-          borderRadius: '8px',
-          border: '1px solid #eee',
-        }}>
+        <div
+          key={index}
+          className={`${styles.taskItem} ${task.completed ? styles.completed : styles.incomplete}`}
+        >
           <div>
-            <h4 style={{ margin: 0 }}>{task.title}</h4>
-            <p style={{ margin: '4px 0' }}>{task.description}</p>
-            <p style={{ margin: '4px 0', fontSize: '14px', color: '#777' }}>
+            <h4 className={styles.title}>{task.title}</h4>
+            <p className={styles.description}>{task.description}</p>
+            <p className={styles.details}>
               Due: {task.dueDate} | Priority: {task.priority}
             </p>
           </div>
 
           <div
             onClick={() => toggleComplete(index)}
-            style={{
-              width: '24px',
-              height: '24px',
-              borderRadius: '50%',
-              border: '2px solid #4A5D23',
-              backgroundColor: task.completed ? '#4A5D23' : 'transparent',
-              cursor: 'pointer',
-              marginLeft: '12px',
-            }}
+            className={`${styles.toggleComplete} ${task.completed ? styles.checked : ''}`}
             title={task.completed ? 'Completed' : 'Mark as Done'}
           />
         </div>

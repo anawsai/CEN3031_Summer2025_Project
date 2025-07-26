@@ -1,0 +1,38 @@
+.form {
+    background-color: white;
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+  }
+  
+  .heading {
+    color: #7dcea0;
+    margin-bottom: 20px;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+  }
+  
+  .textarea {
+    height: 80px;
+    resize: vertical;
+  }
+  
+  .button {
+    background: linear-gradient(135deg, #6B7B47, #7dcea0);
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 16px;
+    width: 100%;
+  }
+  
