@@ -4,12 +4,12 @@
     border-radius: 15px;
   }
   
-  .heading {
+.heading {
     color: #7dcea0;
     margin-bottom: 15px;
-  }
-  
-  .taskItem {
+}
+
+.taskItem {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -17,40 +17,111 @@
     margin: 10px 0;
     border-radius: 8px;
     border: 1px solid #eee;
-  }
-  
-  .completed {
+}
+
+.completed {
     background-color: #d4edda;
-  }
-  
-  .incomplete {
+}
+
+.incomplete {
     background-color: #f9f9f9;
-  }
-  
-  .title {
+}
+
+.title {
     margin: 0;
-  }
-  
-  .description {
+}
+
+.description {
     margin: 4px 0;
-  }
-  
-  .details {
+}
+
+.details {
     margin: 4px 0;
     font-size: 14px;
     color: #777;
-  }
-  
-  .toggleComplete {
+}
+
+.toggleComplete {
     width: 24px;
     height: 24px;
     border-radius: 50%;
     border: 2px solid #4A5D23;
     cursor: pointer;
     margin-left: 12px;
-  }
-  
-  .checked {
+}
+
+.checked {
     background-color: #4A5D23;
-  }
-  
+}
+
+.taskContent {
+    flex: 1;
+}
+
+.taskActions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dropdownContainer {
+    position: relative;
+}
+
+.dropdownTrigger {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: background-color 0.2s;
+}
+
+.dropdownTrigger:hover {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.dropdownMenu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 120px;
+    overflow: hidden;
+}
+
+.dropdownItem {
+    width: 100%;
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #333;
+    transition: background-color 0.2s;
+}
+
+.dropdownItem:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdownItem:last-child {
+    color: #dc3545;
+}
+
+.dropdownItem:last-child:hover {
+    background-color: #fee;
+}

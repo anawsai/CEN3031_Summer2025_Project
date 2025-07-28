@@ -1,24 +1,50 @@
 import React from 'react';
+import {LogOut} from 'lucide-react';
+import { authAPI } from '../services/api';
 import styles from '../styles/dashboard.module.css';
 
-export function Dashboard({ tasks, setCurrentPage, toggleComplete }) {
+export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenticated }) {
+  // Handle user logout
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout(); //backend logout
+    } 
+    catch (error) {
+      console.error('Logout failed:', error);
+    } 
+    finally {
+      // clear frontend state regardless of backend success
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('user_data');
+      setIsAuthenticated(false);
+      setCurrentPage('home');
+    }
+  };
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: 'beige', padding: '24px' }}>
+
+      {/* Logout button */}
+      <button onClick={handleLogout} className={styles.logoutIconButton} title="Logout">
+        <LogOut className={styles.logoutIcon} />
+      </button>
+
+      {/* Header */}
       <h1 style={{ color: '#7dcea0', fontSize: '32px', fontWeight: 'bold', marginBottom: '24px' }}>
         Welcome to your Dashboard 🐊
       </h1>
-
       <p style={{ fontSize: '18px', marginBottom: '32px' }}>
         What would you like to do today?
       </p>
 
+      {/* Main card layout */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
         gap: '20px'
       }}>
 
-        {/* My Tasks */}
+        {/* My Tasks Card */}
         <div onClick={() => setCurrentPage('tasks')} className={styles.card}>
           <h3>My Tasks</h3>
 
@@ -42,6 +68,7 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete }) {
                     </p>
                   </div>
 
+                  {/* Completion toggle */}
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
@@ -62,7 +89,7 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete }) {
           )}
         </div>
 
-        {/* Pomodoro Timer */}
+        {/* Pomodoro Timer Card */}
         <div className={styles.card}>
           <h3>Pomodoro Timer</h3>
           <div className={styles.pomodoroCircle}></div>
@@ -71,7 +98,7 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete }) {
           </p>
         </div>
 
-        {/* Progress / Analytics */}
+        {/* Progress / Analytics Card */}
         <div className={styles.card}>
           <h3>Progress / Analytics</h3>
           <p style={{ color: '#777' }}>

@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import api from './services/api';
-//pages
+
+//Pages
 import { Login } from './pages/Login';
 import { Signup } from './pages/Signup';
 import { Home } from './pages/Home';
@@ -8,8 +9,10 @@ import { Tasks} from './pages/Tasks';
 import { Dashboard } from './pages/Dashboard';
 
 function App() {
+  //--- State ----
   const [currentPage, setCurrentPage] = useState('home');
   const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -20,6 +23,7 @@ function App() {
     create_date: new Date().toISOString()
   });
 
+  //Toggle completion status
   const toggleComplete = (taskIndex) => {
     const updatedTasks = tasks.map((task, index) =>
       index === taskIndex ? { ...task, completed: !task.completed } : task
@@ -27,25 +31,27 @@ function App() {
     setTasks(updatedTasks);
   };
 
-const fetchTasks = async() => {
-  try{
-      const response = await api.get('http://localhost:5000/api/tasks', {
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`
-      }
-      });
-  setTasks(response.data.tasks || []);
-  } catch (error) {
-    console.error('Error fetching task(s): ', error)
-  }
-};
+  //Fetch tasks from backend
+  const fetchTasks = async() => {
+    try{
+        const response = await api.get('http://localhost:5000/api/tasks', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+        }
+        });
+    setTasks(response.data.tasks || []);
+    } 
+    catch (error) {
+      console.error('Error fetching task(s): ', error)
+    }
+  };
 
+// Check authentication status on initial load
 useEffect(() => {
   if (isAuthenticated) {
     fetchTasks();
   }
 }, [isAuthenticated]);
-
 
 //handle adding a new task
 const addTask = async () => {
@@ -60,7 +66,7 @@ const addTask = async () => {
       }, {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
         }
       });
       await fetchTasks();
@@ -72,12 +78,12 @@ const addTask = async () => {
         dueDate: '',
         priority: ''
       });
-    } catch (error) {
+    } 
+    catch (error) {
       console.error('Error creating task:', error);
     }
   }
 };
-
 
   //routing logic
   if (currentPage === 'home') {
@@ -95,6 +101,7 @@ const addTask = async () => {
         setNewTask={setNewTask}
         addTask={addTask}
         setCurrentPage={setCurrentPage}
+        setIsAuthenticated={setIsAuthenticated}
         toggleComplete={toggleComplete}
       />
     );
@@ -103,6 +110,7 @@ const addTask = async () => {
     return <Login 
     setCurrentPage={setCurrentPage} 
     setIsAuthenticated={setIsAuthenticated}
+    setTasks={setTasks}
     />;
   }
   if (currentPage === 'signup') {
@@ -120,6 +128,7 @@ const addTask = async () => {
       <Tasks
         tasks={tasks}
         newTask={newTask}
+        setTasks={setTasks}
         setNewTask={setNewTask}
         addTask={addTask}
         setCurrentPage={setCurrentPage}

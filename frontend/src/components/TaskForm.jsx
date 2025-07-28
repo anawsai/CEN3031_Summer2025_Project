@@ -11,6 +11,7 @@ export function TaskForm({ newTask, setNewTask, addTask }) {
     <form onSubmit={handleSubmit} className={styles.form}>
       <h3 className={styles.heading}>Add a New Task</h3>
 
+      {/* Title */}
       <input
         type="text"
         value={newTask.title}
@@ -20,6 +21,7 @@ export function TaskForm({ newTask, setNewTask, addTask }) {
         required
       />
 
+      {/* Description, Due Date, and Priority */}
       <textarea
         value={newTask.description}
         onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
@@ -45,11 +47,10 @@ export function TaskForm({ newTask, setNewTask, addTask }) {
         <option value="Low">Low</option>
       </select>
 
+      {/* Submit Button */}
       <button type="submit" className={styles.button}>
         Add Task
       </button>
     </form>
   );
 }
-
-
