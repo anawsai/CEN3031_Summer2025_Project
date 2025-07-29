@@ -2,7 +2,7 @@
 A Gator-themed productivity web app for UF students
 
 ## Quick Setup for Team
-###Prerequisites
+### Prerequisites
 Make sure you have installed on your computer:
 - Node.js: https://nodejs.org/en
 - Python: https://www.python.org/
