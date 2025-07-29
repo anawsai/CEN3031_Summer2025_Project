@@ -86,3 +86,12 @@ border-radius: 8px;
 cursor: not-allowed;
 font-weight: 600;
 }
+
+.loginLink {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+  margin-bottom: 24px;
+  text-align: right;
+  font-size: 0.9rem;
+  }

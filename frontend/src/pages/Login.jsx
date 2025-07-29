@@ -69,7 +69,7 @@ export function Login({ setCurrentPage, setIsAuthenticated, setTasks }) {
         />
 
         {/* Link to Signup page */}
-        <p onClick={() => setCurrentPage('Signup')} className={styles.signupLink}>
+        <p onClick={() => setCurrentPage('signup')} className={styles.signupLink}>
           Need an account? Sign up
         </p>
 

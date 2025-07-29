@@ -113,6 +113,11 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
             </button>
           )}
         </div>
+
+        {/* Link to Login page */}
+        <p onClick={() => setCurrentPage('login')} className={styles.loginLink}>
+          Already have an account? Log in
+        </p>
       </div>
     </div>
   );
