@@ -117,7 +117,7 @@ const confirmDelete = async () => {
 
         {/* Header with back button */} 
         <div className={styles.headerRow}>
-          <h1 className={styles.headerTitle}>My Tasks</h1>
+          <h1 className={styles.headerTitle}> Tasks</h1>
           <button
             className={styles.backButton}
             onClick={() => setCurrentPage('dashboard')}
@@ -177,6 +177,8 @@ const confirmDelete = async () => {
                 addTask();
                 setShowModal(false);
               }}
+              heading="Add a New Task"
+              buttonText="Add Task"
             />
           </div>
         </div>
@@ -189,11 +191,11 @@ const confirmDelete = async () => {
             <button onClick={() => setShowEditModal(false)} className={styles.closeButton}>
               ✕
             </button>
-            <h2>Edit Task</h2>
             <TaskForm
               newTask={editingTask}
               setNewTask={setEditingTask}
               addTask={saveEditedTask}
+              heading="Edit Task"
               buttonText="Save Changes"
             />
           </div>
@@ -204,9 +206,13 @@ const confirmDelete = async () => {
       {showDeleteConfirm && (
         <div className={styles.overlay}>
           <div className={styles.modal}>
-            <h2>Delete Task</h2>
-            <p>Are you sure you want to delete "{taskToDelete?.task.title}"?</p>
-            <p style={{ color: '#666', fontSize: '14px' }}>This action cannot be undone.</p>
+            <h2 style={{ color: '#ff6f00', marginBottom: '20px' }}>Delete Task</h2>
+            <p style={{ color: '#ffffff', marginBottom: '16px' }}>
+              Are you sure you want to delete "{taskToDelete?.task.title}"?
+            </p>
+            <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+              This action cannot be undone.
+            </p>
             
             <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
               <button 

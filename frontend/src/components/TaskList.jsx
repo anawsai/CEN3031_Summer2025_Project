@@ -1,9 +1,12 @@
-import React, {useState} from 'react';
+import React, {useState, useRef} from 'react';
+import { createPortal } from 'react-dom';
 import { MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import styles from '../styles/tasklist.module.css';
 
 export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
   const [openDropdown, setOpenDropdown] = useState(null);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const triggerRefs = useRef({});
 
   // Close 3-dot dropdown when clicking outside
   React.useEffect(() => {
@@ -16,8 +19,24 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
 
   // Toggle dropdown open/closed for each task
   const handleDropdownClick = (e, index) => {
-    e.stopPropagation(); // prevent triggering other events
-    setOpenDropdown(openDropdown === index ? null : index);
+    e.stopPropagation();
+    
+    if (openDropdown === index) {
+      setOpenDropdown(null);
+      return;
+    }
+    
+    // Get button position for portal positioning
+    const button = triggerRefs.current[index];
+    if (button) {
+      const rect = button.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 5, 
+        left: rect.left + window.scrollX - 100 
+      });
+    }
+    
+    setOpenDropdown(index);
   };
 
   // Handle edit and delete actions
@@ -36,7 +55,7 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
   return (
     <div className={styles.container}>
       <h3 className={styles.heading}>
-        Your Tasks ({tasks.length})
+         My Tasks ({tasks.length})
       </h3>
 
       {tasks.map((task, index) => (
@@ -58,31 +77,13 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
             {/* Three-dots dropdown menu */}
             <div className={styles.dropdownContainer}>
               <button
+                ref={el => triggerRefs.current[index] = el}
                 className={styles.dropdownTrigger}
                 onClick={(e) => handleDropdownClick(e, index)}
                 title="More options"
               >
                 <MoreVertical size={16} />
               </button>
-
-              {openDropdown === index && (
-                <div className={styles.dropdownMenu}>
-                  <button
-                    className={styles.dropdownItem}
-                    onClick={(e) => handleEdit(e, task, index)}
-                  >
-                    <Edit2 size={14} />
-                    Edit
-                  </button>
-                  <button
-                    className={styles.dropdownItem}
-                    onClick={(e) => handleDelete(e, task, index)}
-                  >
-                    <Trash2 size={14} />
-                    Delete
-                  </button>
-                </div>
-              )}
             </div>
 
           {/* Complete toggle */}
@@ -94,6 +95,35 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
           </div>
         </div>
       ))}
+      
+      {/* Portal dropdown menu */}
+      {openDropdown !== null && createPortal(
+        <div 
+          className={styles.dropdownMenu}
+          style={{
+            position: 'absolute',
+            top: dropdownPosition.top,
+            left: dropdownPosition.left,
+            zIndex: 999999
+          }}
+        >
+          <button
+            className={styles.dropdownItem}
+            onClick={(e) => handleEdit(e, tasks[openDropdown], openDropdown)}
+          >
+            <Edit2 size={14} />
+            Edit
+          </button>
+          <button
+            className={styles.dropdownItem}
+            onClick={(e) => handleDelete(e, tasks[openDropdown], openDropdown)}
+          >
+            <Trash2 size={14} />
+            Delete
+          </button>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }

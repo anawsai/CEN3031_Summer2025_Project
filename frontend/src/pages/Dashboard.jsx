@@ -22,38 +22,34 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: 'beige', padding: '24px' }}>
-
+    <div className={styles.pageContainer}>
+  
       {/* Logout button */}
       <button onClick={handleLogout} className={styles.logoutIconButton} title="Logout">
         <LogOut className={styles.logoutIcon} />
       </button>
-
+  
       {/* Header */}
-      <h1 style={{ color: '#7dcea0', fontSize: '32px', fontWeight: 'bold', marginBottom: '24px' }}>
-        Welcome to your Dashboard 🐊
+      <h1 className={styles.dashboardTitle}>
+        Welcome to your Dashboard
       </h1>
-      <p style={{ fontSize: '18px', marginBottom: '32px' }}>
+      <p className={styles.subtitle}>
         What would you like to do today?
       </p>
-
+  
       {/* Main card layout */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: '20px'
-      }}>
-
+      <div className={styles.cardGrid}>
+  
         {/* My Tasks Card */}
         <div onClick={() => setCurrentPage('tasks')} className={styles.card}>
           <h3>My Tasks</h3>
-
+  
           {tasks.length === 0 && (
             <p style={{ color: '#777', fontSize: '14px' }}>
               No tasks yet. Click to add your first task!
             </p>
           )}
-
+  
           {tasks.length > 0 && (
             <div>
               {tasks.slice(0, 3).map((task, index) => (
@@ -67,7 +63,7 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
                       Due: {task.dueDate || 'N/A'} | Priority: {task.priority || 'N/A'}
                     </p>
                   </div>
-
+  
                   {/* Completion toggle */}
                   <div
                     onClick={(e) => {
@@ -81,14 +77,14 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
               ))}
             </div>
           )}
-
+  
           {tasks.length > 3 && (
             <p style={{ color: '#777', fontSize: '14px' }}>
               ...and {tasks.length - 3} more tasks
             </p>
           )}
         </div>
-
+  
         {/* Pomodoro Timer Card */}
         <div className={styles.card}>
           <h3>Pomodoro Timer</h3>
@@ -97,7 +93,7 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
             Unlock prizes as you complete tasks!
           </p>
         </div>
-
+  
         {/* Progress / Analytics Card */}
         <div className={styles.card}>
           <h3>Progress / Analytics</h3>
@@ -105,7 +101,7 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
             Track your focus, productivity, and XP here.
           </p>
         </div>
-
+  
       </div>
     </div>
   );

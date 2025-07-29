@@ -1,7 +1,7 @@
 import React from 'react';
 import styles from '../styles/taskform.module.css';
 
-export function TaskForm({ newTask, setNewTask, addTask }) {
+export function TaskForm({ newTask, setNewTask, addTask, heading = "Add a New Task", buttonText = "Add Task" }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     addTask();
@@ -9,7 +9,7 @@ export function TaskForm({ newTask, setNewTask, addTask }) {
 
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
-      <h3 className={styles.heading}>Add a New Task</h3>
+      <h3 className={styles.heading}>{heading}</h3>
 
       {/* Title */}
       <input
@@ -49,7 +49,7 @@ export function TaskForm({ newTask, setNewTask, addTask }) {
 
       {/* Submit Button */}
       <button type="submit" className={styles.button}>
-        Add Task
+        {buttonText}
       </button>
     </form>
   );

@@ -1,37 +1,91 @@
 .form {
-    background-color: white;
-    padding: 30px;
-    border-radius: 15px;
-    margin-bottom: 20px;
-  }
-  
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  backdrop-filter: none;
+  position: static;
+  overflow: visible;
+  margin-bottom: 0;
+}
+
 .heading {
-color: #7dcea0;
-margin-bottom: 20px;
+  color: #ff6f00;
+  margin-bottom: 32px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .input {
-width: 100%;
-padding: 12px;
-margin-bottom: 16px;
-border-radius: 8px;
-border: 1px solid #ccc;
-font-size: 16px;
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #003366;
+  font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.input::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.input:focus {
+  outline: none;
+  border-color: #ff6f00;
+  box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .textarea {
-height: 80px;
-resize: vertical;
+  height: 80px;
+  resize: vertical;
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  border: 1px solid #003366;
+  font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.textarea::placeholder {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: #ff6f00;
+  box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .button {
-background: linear-gradient(135deg, #6B7B47, #7dcea0);
-color: white;
-padding: 15px 30px;
-border-radius: 8px;
-border: none;
-cursor: pointer;
-font-weight: 600;
-font-size: 16px;
-width: 100%;
+  background: linear-gradient(135deg, #ff6f00, #ff8f00);
+  color: white;
+  padding: 16px 30px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 16px;
+  width: 100%;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(255, 111, 0, 0.3);
+}
+
+.button:hover {
+  background: linear-gradient(135deg, #ff8f00, #ffab00);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 111, 0, 0.4);
 }
