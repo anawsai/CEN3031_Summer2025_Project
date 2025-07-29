@@ -2,7 +2,7 @@
 A Gator-themed productivity web app for UF students
 
 ## Quick Setup for Team
-Prerequisites
+###Prerequisites
 Make sure you have installed on your computer:
 - Node.js: https://nodejs.org/en
 - Python: https://www.python.org/
@@ -47,6 +47,24 @@ Now edit ```.env``` with our Supabase credentials (check team chat for keys).
 
 5. **Test it works**
    Go to ```http://localhost:5000/api/health``` - you should see a success message. (I will put it in one of our disc chats)
+
+### Frontend Setup
+
+1. **Navigate to frontend**
+   ```sh
+   cd swampscheduler/frontend
+   ```
+2. ***Install Dependencies***
+   ```sh
+   npm install
+   npm install lucide-react
+   ```
+3. ***Run the development server***
+   ```sh
+   npm start
+   ```
+4. ***Test it works***
+   Go to ```http://localhost:3000``` - you should see the SwampScheduler homepage. 
 
 ## Current Status
 - ✅ Flask backend running
