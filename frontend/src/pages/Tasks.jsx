@@ -1,4 +1,6 @@
 import React from 'react';
+import api from '../services/api';
+import styles from '../styles/tasks.module.css';
 import { TaskForm } from '../components/TaskForm';
 import { TaskList } from '../components/TaskList';
 
@@ -8,69 +10,117 @@ export function Tasks({
   setNewTask,
   addTask,
   setCurrentPage,
-  toggleComplete
+  toggleComplete,
+  setTasks
 }) {
+
+  //UI states for modals and task editing/deletion
   const [showModal, setShowModal] = React.useState(false);
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
+  const [editingTask, setEditingTask] = React.useState(null);
+  const [editingIndex, setEditingIndex] = React.useState(null);
+  const [taskToDelete, setTaskToDelete] = React.useState(null);
   const [filter, setFilter] = React.useState('');
 
-  //This is dropdown logic
-  let filteredTasks = [...tasks];
+// Handle task editing
+const handleEditTask = (task, index) => {
+  setEditingTask({
+    title: task.title,
+    description: task.description,
+    dueDate: task.due_date,
+    priority: task.priority
+  });
+  setEditingIndex(index);
+  setShowEditModal(true);
+};
 
+// Save edited task
+const saveEditedTask = async () => {
+  if (!editingTask || editingIndex === null) return;
+
+  try {
+    const taskId = tasks[editingIndex].id;
+    const response = await api.put(`/tasks/${taskId}`, {
+      title: editingTask.title,
+      description: editingTask.description,
+      due_date: editingTask.dueDate,
+      priority: editingTask.priority
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+      }
+    });
+
+  //update local tasks state
+  const updatedTasks = [...tasks];
+  updatedTasks[editingIndex] = response.data.task;
+  setTasks(updatedTasks);
+  
+  //close the modal and reset editing state
+  setShowEditModal(false);
+  setEditingTask(null);
+  setEditingIndex(null);
+  } 
+  catch (error) {
+  console.error('Error updating task:', error);
+  alert('Failed to update task. Please try again.');
+  }
+};
+
+// Handle task deletion
+const handleDeleteTask = (task, index) => {
+  setTaskToDelete({ task, index });
+  setShowDeleteConfirm(true);
+};
+
+// Confirm and delete task
+const confirmDelete = async () => {
+  if (!taskToDelete) return;
+
+  try {
+    const taskId = taskToDelete.task.id;
+    await api.delete(`/tasks/${taskId}`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+    }
+  });
+
+  //remove the task from local state
+  const updatedTasks = tasks.filter((_, index) => index !== taskToDelete.index);
+  setTasks(updatedTasks);
+
+  //close the confirmation modal
+  setShowDeleteConfirm(false);
+  setTaskToDelete(null);
+  } 
+  catch (error) {
+    console.error('Error deleting task:', error);
+    alert('Failed to delete task. Please try again.');
+  }
+};
+
+  // Filter tasks based on selected criteria
+  let filteredTasks = [...tasks];
   if (filter === 'priority') {
     const priorityOrder = { High: 3, Medium: 2, Low: 1 };
-    filteredTasks.sort((a, b) => {
-      return (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0);
-    });
+    filteredTasks.sort((a, b) => (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0));
   } else if (filter === 'deadline') {
     filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
   }
 
-  return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: '#f7f3e9',
-      padding: '48px 24px',
-      display: 'flex',
-      justifyContent: 'center'
-    }}>
-      <div style={{
-        maxWidth: '800px',
-        width: '100%',
-        backgroundColor: '#ffffff',
-        padding: '32px',
-        borderRadius: '16px',
-        boxShadow: '0 10px 20px rgba(0, 0, 0, 0.05)'
-      }}>
-        {/* Header Row */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '30px'
-        }}>
-          <h1 style={{
-            fontSize: '32px',
-            fontWeight: 'bold',
-            color: '#4A5D23',
-            margin: 0
-          }}>
-             My Tasks
-          </h1>
 
+  return (
+    <div className={styles.tasksContainer}>
+      <div className={styles.innerContainer}>
+
+        {/* Header with back button */} 
+        <div className={styles.headerRow}>
+          <h1 className={styles.headerTitle}> Tasks</h1>
           <button
+            className={styles.backButton}
             onClick={() => setCurrentPage('dashboard')}
-            style={{
-              backgroundColor: '#ffffff',
-              color: '#4A5D23',
-              padding: '10px 18px',
-              border: '2px solid #4A5D23',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: '600',
-              transition: 'all 0.2s ease-in-out'
-            }}
-            onMouseEnter={e => e.target.style.backgroundColor = '#f1f8e9'}
-            onMouseLeave={e => e.target.style.backgroundColor = '#ffffff'}
           >
             ← Dashboard
           </button>
@@ -78,35 +128,22 @@ export function Tasks({
 
         {/* Add Task Button */}
         <button
+          className={styles.addTaskButton}
           onClick={() => setShowModal(true)}
-          style={{
-            backgroundColor: '#6B7B47',
-            color: 'white',
-            padding: '14px 24px',
-            border: 'none',
-            borderRadius: '10px',
-            fontWeight: 'bold',
-            marginBottom: '20px',
-            cursor: 'pointer'
-          }}
         >
           + Add Task
         </button>
 
-        {/* Sort Dropdown*/}
-        <div style={{marginBottom: '20px'}}>
-          <label htmlFor="filter" style ={{marginRight: '10px', fontweight: 'bold'}}>
+        {/* Sort Dropdown */}
+        <div className={styles.sortContainer}>
+          <label htmlFor="filter" className={styles.sortLabel}>
             Sort By:
           </label>
           <select
-            id = "filter"
+            id="filter"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            style={{
-              padding: '8px',
-              borderRadius: '6px',
-              border: '1px solid #ccc'
-            }}
+            className={styles.sortSelect}
           >
             <option value="">None</option>
             <option value="priority">Priority</option>
@@ -115,16 +152,22 @@ export function Tasks({
         </div>
 
         {/* Task List */}
-        <div style={{ marginTop: '40px' }}>
-          <TaskList tasks={filteredTasks} toggleComplete={toggleComplete}/>
+        <div className={styles.taskListContainer}>
+          <TaskList 
+            tasks={filteredTasks} 
+            toggleComplete={toggleComplete}
+            onEditTask={handleEditTask}
+            onDeleteTask={handleDeleteTask}
+          />
         </div>
-      </div>  
+      </div>
 
-      {/* Modal */}
+      {/* ----------------- Modals ------------------*/}
+      {/* Add Task Modal */}
       {showModal && (
-        <div style={overlayStyle}>
-          <div style={modalStyle}>
-            <button onClick={() => setShowModal(false)} style={closeBtnStyle}>
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <button onClick={() => setShowModal(false)} className={styles.closeButton}>
               ✕
             </button>
             <TaskForm
@@ -132,44 +175,62 @@ export function Tasks({
               setNewTask={setNewTask}
               addTask={() => {
                 addTask();
-                setShowModal(false); //close modal after adding
+                setShowModal(false);
               }}
+              heading="Add a New Task"
+              buttonText="Add Task"
             />
+          </div>
+        </div>
+      )}
+
+      {/*Edit Task Modal */}
+      {showEditModal && (
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <button onClick={() => setShowEditModal(false)} className={styles.closeButton}>
+              ✕
+            </button>
+            <TaskForm
+              newTask={editingTask}
+              setNewTask={setEditingTask}
+              addTask={saveEditedTask}
+              heading="Edit Task"
+              buttonText="Save Changes"
+            />
+          </div>
+        </div>
+      )}
+
+      {/*Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <h2 style={{ color: '#ff6f00', marginBottom: '20px' }}>Delete Task</h2>
+            <p style={{ color: '#ffffff', marginBottom: '16px' }}>
+              Are you sure you want to delete "{taskToDelete?.task.title}"?
+            </p>
+            <p style={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px' }}>
+              This action cannot be undone.
+            </p>
+            
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button 
+                onClick={() => setShowDeleteConfirm(false)}
+                className={styles.cancelButton}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className={styles.deleteButton}
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}
     </div>
   );
 }
-
-
-
-const overlayStyle = {
-  position: 'fixed',
-  top: 0, left: 0, right: 0, bottom: 0,
-  backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  display: 'flex',
-  justifyContent: 'center',
-  alignItems: 'center',
-  zIndex: 1000
-};
-
-const modalStyle = {
-  backgroundColor: 'white',
-  padding: '40px',
-  borderRadius: '16px',
-  maxWidth: '600px',
-  width: '90%',
-  position: 'relative'
-};
-
-const closeBtnStyle = {
-  position: 'absolute',
-  top: '12px',
-  right: '16px',
-  background: 'none',
-  border: 'none',
-  fontSize: '24px',
-  cursor: 'pointer',
-  color: '#888'
-};

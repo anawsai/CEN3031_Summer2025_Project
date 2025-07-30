@@ -20,7 +20,7 @@ config_name = os.getenv('FLASK_ENV', 'development')
 # enable cors for frontend communication
 app.config.from_object(config[config_name])
 
-jwt = JWTManager(app) 
+jwt = JWTManager(app)  
 CORS(app)
 
 # initialize supabase connection
