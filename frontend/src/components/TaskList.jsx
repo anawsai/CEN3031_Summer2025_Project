@@ -8,7 +8,6 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const triggerRefs = useRef({});
 
-  // Close 3-dot dropdown when clicking outside
   React.useEffect(() => {
     const handleClickOutside = () => setOpenDropdown(null);
     document.addEventListener('click', handleClickOutside);
@@ -17,7 +16,6 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
 
   if (tasks.length === 0) return null;
 
-  // Toggle dropdown open/closed for each task
   const handleDropdownClick = (e, index) => {
     e.stopPropagation();
     
@@ -26,7 +24,6 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
       return;
     }
     
-    // Get button position for portal positioning
     const button = triggerRefs.current[index];
     if (button) {
       const rect = button.getBoundingClientRect();
@@ -39,7 +36,6 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
     setOpenDropdown(index);
   };
 
-  // Handle edit and delete actions
   const handleEdit = (e, task, index) => {
     e.stopPropagation();
     onEditTask(task, index);
@@ -63,7 +59,6 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
           key={index}
           className={`${styles.taskItem} ${task.completed ? styles.completed : styles.incomplete}`}
         >
-          {/* Task details */}
           <div>
             <h4 className={styles.title}>{task.title}</h4>
             <p className={styles.description}>{task.description}</p>
@@ -72,9 +67,7 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
             </p>
           </div>
 
-          {/* Task actions: Dropdown + Completion toggle */}
           <div className={styles.taskActions}>
-            {/* Three-dots dropdown menu */}
             <div className={styles.dropdownContainer}>
               <button
                 ref={el => triggerRefs.current[index] = el}
@@ -86,7 +79,6 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
               </button>
             </div>
 
-          {/* Complete toggle */}
           <div
             onClick={() => toggleComplete(index)}
             className={`${styles.toggleComplete} ${task.completed ? styles.checked : ''}`}
@@ -96,7 +88,6 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
         </div>
       ))}
       
-      {/* Portal dropdown menu */}
       {openDropdown !== null && createPortal(
         <div 
           className={styles.dropdownMenu}

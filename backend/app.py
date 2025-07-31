@@ -6,21 +6,18 @@ from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity, creat
 from flask_cors import CORS
 from dotenv import load_dotenv
 from supabase import create_client, Client
+from datetime import datetime, date
 import os
 
-# test comment to be able to download functioning build on laptop
-
-# loads environment variables
+# load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 
-# load configuration
 config_name = os.getenv('FLASK_ENV', 'development')
-# enable cors for frontend communication
 app.config.from_object(config[config_name])
 
-jwt = JWTManager(app)  
+jwt = JWTManager(app)
 CORS(app)
 
 # initialize supabase connection
@@ -31,7 +28,6 @@ except Exception as e:
     print(f"Failed to initialize Supabase: {e}")
 
 
-# basic health check route
 @app.route('/api/health')
 def health_check():
     """Enhanced health check endpoint with database connectivity"""
@@ -56,7 +52,6 @@ def register():
     try:
         data = request.get_json()
 
-        # validate required fields
         if not data:
             return jsonify({'error': 'No data provided'}), 400
 
@@ -67,8 +62,6 @@ def register():
         year = data.get('year')
         first_name = data.get('firstName')
         last_name = data.get('lastName')
-
-        # validate required fields
         if not email or not password:
             return jsonify({'error': 'Email and password are required'}), 400
 
@@ -77,13 +70,11 @@ def register():
 
         supabase = get_supabase_client()
 
-        # check if username already exists
         existing_username = supabase.table("Users").select(
             "username").eq("username", username).execute()
         if existing_username.data:
             return jsonify({'error': 'Username already exists'}), 400
 
-        # create user with Supabase Auth (this handles password hashing, etc.)
         auth_response = supabase.auth.sign_up({
             'email': email,
             'password': password
@@ -94,19 +85,17 @@ def register():
 
         service_supabase = get_service_role_client()
 
-        # create user profile in users table
         user_profile_data = {
-            'auth_id': auth_response.user.id,  # link to supabase auth
+            'auth_id': auth_response.user.id,
             'email': email,
             'username': username,
             'major': major,
             'year': year,
             'first_name': first_name,
             'last_name': last_name,
-            'email_verified': False  # will be true after email confirmation
+            'email_verified': False
         }
 
-        # insert into our custom users table
         profile_response = service_supabase.table(
             "Users").insert(user_profile_data).execute()
 
@@ -150,7 +139,6 @@ def login():
 
         supabase = get_supabase_client()
 
-        # authenticate with Supabase Auth
         auth_response = supabase.auth.sign_in_with_password({
             'email': email,
             'password': password
@@ -161,7 +149,6 @@ def login():
 
         print(f"Auth successful for user: {auth_response.user.id}")
 
-        # bypass RLS to get the user profile
         try:
             service_supabase = get_service_role_client()
             user_profile_response = service_supabase.table('Users').select(
@@ -180,6 +167,9 @@ def login():
             print(f"Profile retrieval error: {profile_error}")
             return jsonify({'error': 'Profile retrieval failed', 'details': str(profile_error)}), 500
 
+        flask_access_token = create_access_token(
+            identity=auth_response.user.id)
+
         return jsonify({
             'message': 'Login successful',
             'user': {
@@ -192,7 +182,8 @@ def login():
                 'last_name': user_profile.get('last_name'),
                 'email_verified': user_profile['email_verified']
             },
-            'access_token': auth_response.session.access_token
+            'access_token': flask_access_token,
+            'supabase_token': auth_response.session.access_token
         }), 200
 
     except Exception as e:
@@ -206,12 +197,10 @@ def logout():
     try:
         supabase = get_supabase_client()
 
-        # get the authorization header
         auth_header = request.headers.get('Authorization')
         if not auth_header or not auth_header.startswith('Bearer '):
             return jsonify({'error': 'No valid authorization token provided'}), 401
 
-        # sign out from supabase
         supabase.auth.sign_out()
 
         return jsonify({'message': 'Logout successful'}), 200
@@ -224,30 +213,26 @@ def logout():
 @app.route('/api/tasks', methods=['POST'])
 @jwt_required()
 def create_task():
-    """create new task - todo: implement task creation"""
-#TODO: have some sort of health check print statement for python terminal
-        # like "task completed successfully"
-
-    # gets data from app.js task logic
+    """create new task"""
     data = request.get_json()
     print("Parsed JSON data:", data)
 
     if not data:
         return jsonify({'error': 'No JSON data received'}), 400
 
-    title=data.get('title')
-    description=data.get('description')
-    due_date=data.get('due_date')
-    priority=data.get('priority')
-    create_date=data.get('create_date')
+    title = data.get('title')
+    description = data.get('description')
+    due_date = data.get('due_date')
+    priority = data.get('priority')
+    create_date = data.get('create_date')
 
-    # checks for title, description, and priority
     if not title or not description or not due_date or not priority:
         return jsonify({'error': 'Missing required fields'}), 400
 
     auth_id = get_jwt_identity()
     service_supabase = get_service_role_client()
-    user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+    user_response = service_supabase.table('Users').select(
+        'id').eq('auth_id', auth_id).execute()
 
     print(f"User profile query result: {user_response.data}")
 
@@ -257,24 +242,24 @@ def create_task():
     else:
         print("No user profile found")
         return jsonify({'error': 'User profile not found'}), 404
-    
+
     user_id = user_response.data[0]['id']
 
     task_data = {
-        'user_id' : user_id,
-        'title' : title,
-        'description' : description,
-        'due_date' : due_date,
-        'priority' : priority,
-        'completed' : False,
-        'create_date' : create_date,
-        'updated_date' : create_date, # the last time task would have been updated was on creation
-        'completed_date' : None
+        'user_id': user_id,
+        'title': title,
+        'description': description,
+        'due_date': due_date,
+        'priority': priority,
+        'completed': False,
+        'create_date': create_date,
+        'updated_date': create_date,
+        'completed_date': None
     }
 
-    # inserts task_data into tasks DB schema
     try:
-        task_response = service_supabase.table("Tasks").insert(task_data).execute()
+        task_response = service_supabase.table(
+            "Tasks").insert(task_data).execute()
 
         if task_response.data:
             return jsonify({
@@ -283,11 +268,11 @@ def create_task():
             }), 201
         else:
             return jsonify({'error': 'Error inserting task'}), 500
-    
+
     except Exception as e:
-        # returns error
         print(f"Error inserting task: {e}")
-        return jsonify({'error': 'Internal Error', 'details':str(e)}), 500
+        return jsonify({'error': 'Internal Error', 'details': str(e)}), 500
+
 
 @app.route('/api/tasks', methods=['GET'])
 @jwt_required()
@@ -296,15 +281,15 @@ def get_tasks():
         auth_id = get_jwt_identity()
         service_supabase = get_service_role_client()
 
-        # get user profile
-        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+        user_response = service_supabase.table('Users').select(
+            'id').eq('auth_id', auth_id).execute()
         if not user_response.data:
             return jsonify({'error': 'User profile not found'}), 404
 
         user_id = user_response.data[0]['id']
 
-        # use user_id, not auth_id
-        task_response = service_supabase.table('Tasks').select('*').eq('user_id', user_id).execute()
+        task_response = service_supabase.table('Tasks').select(
+            '*').eq('user_id', user_id).execute()
         tasks = task_response.data if task_response.data else []
 
         return jsonify({'tasks': tasks}), 200
@@ -313,163 +298,379 @@ def get_tasks():
         print(f"Error fetching tasks: {e}")
         return jsonify({'error': 'Internal Server Error', 'details': str(e)}), 500
 
-        
 
-@app.route('/api/tasks/<int:task_id>', methods=['PUT'])
+@app.route('/api/tasks/<task_id>', methods=['PUT'])
+@jwt_required()
 def update_task(task_id):
-    """update existing task - todo: implement task updates"""
-    # todo: verify auth token
-    # todo: check task ownership
-    # todo: validate update data
-    # todo: update task in database
-    # todo: return updated task data
-    return jsonify({'message': f'update task {task_id} endpoint - todo: implement'}), 501
+    """Update task title only"""
+    try:
+        auth_id = get_jwt_identity()
+
+        data = request.get_json()
+        if not data or 'title' not in data:
+            return jsonify({'error': 'Title is required'}), 400
+
+        new_title = data.get('title')
+        if not new_title or not new_title.strip():
+            return jsonify({'error': 'Title cannot be empty'}), 400
+
+        service_supabase = get_service_role_client()
+        user_response = service_supabase.table('Users').select(
+            'id').eq('auth_id', auth_id).execute()
+
+        if not user_response.data:
+            return jsonify({'error': 'User not found'}), 404
+
+        user_id = user_response.data[0]['id']
+
+        task_response = service_supabase.table('Tasks').update({
+            'title': new_title.strip()
+        }).eq('id', task_id).eq('user_id', user_id).execute()
+
+        if not task_response.data:
+            return jsonify({'error': 'Task not found or unauthorized'}), 404
+
+        return jsonify({
+            'message': 'Task updated successfully',
+            'task': task_response.data[0]
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
+@app.route('/api/tasks/<task_id>', methods=['DELETE'])
+@jwt_required()
 def delete_task(task_id):
-    """delete task - todo: implement task deletion"""
-    # todo: verify auth token
-    # todo: check task ownership
-    # todo: delete from database
-    # todo: return success response
-    return jsonify({'message': f'delete task {task_id} endpoint - todo: implement'}), 501
+    """Delete task with ownership check"""
+    try:
+        auth_id = get_jwt_identity()
 
-@app.route('/api/tasks/<int:task_id>/complete', methods=['POST'])
+        service_supabase = get_service_role_client()
+        user_response = service_supabase.table('Users').select(
+            'id').eq('auth_id', auth_id).execute()
+
+        if not user_response.data:
+            return jsonify({'error': 'User not found'}), 404
+
+        user_id = user_response.data[0]['id']
+
+        delete_response = service_supabase.table('Tasks').delete().eq(
+            'id', task_id).eq('user_id', user_id).execute()
+
+        if not delete_response.data:
+            return jsonify({'error': 'Task not found or unauthorized'}), 404
+
+        return jsonify({
+            'message': 'Task deleted successfully',
+            'task_id': task_id
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/tasks/<task_id>/complete', methods=['POST'])
+@jwt_required()
 def complete_task(task_id):
-    """mark task as complete - todo: implement task completion"""
-    # todo: verify auth token
-    # todo: check task ownership
-    # todo: update task status in database
-    # todo: award xp points for completion
-    # todo: update user stats
-    # todo: return updated task and xp data
-    return jsonify({'message': f'complete task {task_id} endpoint - todo: implement'}), 501
+    """Toggle task completion status"""
+    try:
+        auth_id = get_jwt_identity()
 
-# todo: implement adaptive scheduling routes
+        service_supabase = get_service_role_client()
+        user_response = service_supabase.table('Users').select(
+            'id').eq('auth_id', auth_id).execute()
+
+        if not user_response.data:
+            return jsonify({'error': 'User not found'}), 404
+
+        user_id = user_response.data[0]['id']
+
+        task_response = service_supabase.table('Tasks').select(
+            '*').eq('id', task_id).eq('user_id', user_id).execute()
+
+        if not task_response.data:
+            return jsonify({'error': 'Task not found or unauthorized'}), 404
+
+        task = task_response.data[0]
+        new_completed = not task['completed']
+
+        update_data = {
+            'completed': new_completed,
+            'completed_date': datetime.utcnow().isoformat() if new_completed else None
+        }
+
+        update_response = service_supabase.table('Tasks').update(
+            update_data).eq('id', task_id).execute()
+
+        if not update_response.data:
+            return jsonify({'error': 'Failed to update task'}), 500
+
+        xp_awarded = 0
+        if new_completed and task['completed_date'] is None:
+            xp_response = service_supabase.table('user_xp').select(
+                '*').eq('user_id', auth_id).execute()
+
+            if xp_response.data:
+                current_xp = xp_response.data[0]['total_xp']
+                new_xp = current_xp + 10
+                service_supabase.table('user_xp').update({
+                    'total_xp': new_xp
+                }).eq('user_id', auth_id).execute()
+            else:
+                service_supabase.table('user_xp').insert({
+                    'user_id': auth_id,
+                    'total_xp': 10
+                }).execute()
+
+            xp_awarded = 10
+
+            try:
+                service_supabase.rpc('increment_daily_task_count', {
+                                     'p_user_id': auth_id}).execute()
+            except Exception as stats_error:
+                print(f"Failed to update daily stats: {stats_error}")
+
+            from utils.achievements import check_task_achievements, get_user_stats
+            try:
+                total_tasks, _ = get_user_stats(user_id, service_supabase)
+                newly_earned_achievements = check_task_achievements(
+                    auth_id, total_tasks, service_supabase)
+            except Exception as achievement_error:
+                print(f"Failed to check achievements: {achievement_error}")
+                newly_earned_achievements = []
+
+        response_data = {
+            'message': f'Task {"completed" if new_completed else "uncompleted"} successfully',
+            'task': update_response.data[0],
+            'xp_awarded': xp_awarded
+        }
+
+        if new_completed and newly_earned_achievements:
+            response_data['achievements_earned'] = newly_earned_achievements
+
+        return jsonify(response_data), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/schedule/generate', methods=['POST'])
 def generate_schedule():
-    """generate adaptive schedule - todo: implement scheduling algorithm"""
-    # todo: verify auth token
-    # todo: get user's tasks and preferences
-    # todo: implement scheduling algorithm (priority-based, deadline-based)
-    # todo: consider user's class schedule and break times
-    # todo: return generated schedule
+    """generate adaptive schedule"""
     return jsonify({'message': 'generate schedule endpoint - todo: implement'}), 501
 
 
 @app.route('/api/schedule', methods=['GET'])
 def get_schedule():
-    """get current schedule for user - todo: implement schedule retrieval"""
-    # todo: verify auth token
-    # todo: get schedule from database
-    # todo: return schedule data (daily, weekly views)
+    """get current schedule for user"""
     return jsonify({'message': 'get schedule endpoint - todo: implement'}), 501
-
-# todo: implement gamification/xp system routes
 
 
 @app.route('/api/xp', methods=['GET'])
+@jwt_required()
 def get_user_xp():
-    """get user's current xp and level - todo: implement xp retrieval"""
-    # todo: verify auth token
-    # todo: get user xp data from database
-    # todo: calculate current level and progress
-    # todo: return xp and level data
-    return jsonify({'message': 'get xp endpoint - todo: implement'}), 501
+    """Get user's current XP, level, and progress"""
+    try:
+        from utils.level_system import get_level_info
+
+        auth_id = get_jwt_identity()
+
+        service_supabase = get_service_role_client()
+        xp_response = service_supabase.table('user_xp').select(
+            '*').eq('user_id', auth_id).execute()
+
+        if xp_response.data:
+            xp_data = xp_response.data[0]
+            total_xp = xp_data['total_xp']
+
+            level_info = get_level_info(total_xp)
+
+            return jsonify({
+                'total_xp': total_xp,
+                'level': level_info['level'],
+                'level_name': level_info['level_name'],
+                'xp_to_next_level': level_info['xp_to_next_level'],
+                'progress_percent': level_info['progress_percent'],
+                'min_xp_for_level': level_info['min_xp_for_level'],
+                'max_xp_for_level': level_info['max_xp_for_level']
+            }), 200
+        else:
+            return jsonify({
+                'total_xp': 0,
+                'level': 1,
+                'level_name': 'Hatchling',
+                'xp_to_next_level': 100,
+                'progress_percent': 0,
+                'min_xp_for_level': 0,
+                'max_xp_for_level': 100
+            }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/achievements', methods=['GET'])
 def get_achievements():
-    """get user's achievements and badges - todo: implement achievements"""
-    # todo: verify auth token
-    # todo: get user achievements from database
-    # todo: check for new achievements to unlock
-    # todo: return achievements data
+    """get user's achievements and badges"""
     return jsonify({'message': 'get achievements endpoint - todo: implement'}), 501
 
-# todo: implement pomodoro timer routes
 
-
-@app.route('/api/pomodoro/session', methods=['POST'])
+@app.route('/api/pomodoro/start', methods=['POST'])
+@jwt_required()
 def start_pomodoro_session():
-    """start new pomodoro session - todo: implement pomodoro tracking"""
-    # todo: verify auth token
-    # todo: create new focus session record
-    # todo: return session id and start time
-    return jsonify({'message': 'start pomodoro session endpoint - todo: implement'}), 501
+    """Start a new pomodoro session"""
+    try:
+        auth_id = get_jwt_identity()
+
+        supabase = get_supabase_client()
+        new_session = supabase.table('focus_sessions').insert({
+            'user_id': auth_id,
+            'start_time': datetime.utcnow().isoformat(),
+            'duration': 1500,
+            'completed': False
+        }).execute()
+
+        if new_session.data:
+            session = new_session.data[0]
+            return jsonify({
+                'session_id': session['id'],
+                'start_time': session['start_time']
+            }), 201
+        else:
+            return jsonify({'error': 'Failed to create session'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
-@app.route('/api/pomodoro/session/<int:session_id>/complete', methods=['POST'])
+@app.route('/api/pomodoro/<session_id>/complete', methods=['POST'])
+@jwt_required()
 def complete_pomodoro_session(session_id):
-    """complete pomodoro session - todo: implement session completion"""
-    # todo: verify auth token
-    # todo: update session with end time and duration
-    # todo: award xp for completed session
-    # todo: update focus time analytics
-    # todo: return session data and xp earned
-    return jsonify({'message': f'complete pomodoro session {session_id} endpoint - todo: implement'}), 501
+    """Complete a pomodoro session"""
+    try:
+        auth_id = get_jwt_identity()
 
-# todo: implement collaboration routes
+        supabase = get_supabase_client()
+        session_result = supabase.table('focus_sessions').select(
+            '*').eq('id', session_id).eq('user_id', auth_id).execute()
+
+        if not session_result.data:
+            return jsonify({'error': 'Session not found or unauthorized'}), 404
+
+        session = session_result.data[0]
+
+        if session['completed']:
+            return jsonify({'error': 'Session already completed'}), 400
+
+        update_result = supabase.table('focus_sessions').update({
+            'completed': True
+        }).eq('id', session_id).execute()
+
+        if update_result.data:
+            xp_awarded = 5
+
+            service_supabase = get_service_role_client()
+            xp_response = service_supabase.table('user_xp').select(
+                '*').eq('user_id', auth_id).execute()
+
+            if xp_response.data:
+                current_xp = xp_response.data[0]['total_xp']
+                new_xp = current_xp + xp_awarded
+                service_supabase.table('user_xp').update({
+                    'total_xp': new_xp
+                }).eq('user_id', auth_id).execute()
+            else:
+                service_supabase.table('user_xp').insert({
+                    'user_id': auth_id,
+                    'total_xp': xp_awarded
+                }).execute()
+
+            from utils.achievements import check_focus_achievements, get_user_stats
+            newly_earned_achievements = []
+            try:
+                _, total_focus = get_user_stats(auth_id, service_supabase)
+                newly_earned_achievements = check_focus_achievements(
+                    auth_id, total_focus, service_supabase)
+            except Exception as achievement_error:
+                print(f"Failed to check achievements: {achievement_error}")
+
+            response_data = {
+                'message': 'Session completed successfully',
+                'session_id': session_id,
+                'completed': True,
+                'xp_awarded': xp_awarded
+            }
+
+            if newly_earned_achievements:
+                response_data['achievements_earned'] = newly_earned_achievements
+
+            return jsonify(response_data), 200
+        else:
+            return jsonify({'error': 'Failed to update session'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/boards', methods=['GET'])
 def get_shared_boards():
-    """get user's shared task boards - todo: implement board retrieval"""
-    # todo: verify auth token
-    # todo: get boards where user is member/owner
-    # todo: return boards with member info
+    """get user's shared task boards"""
     return jsonify({'message': 'get shared boards endpoint - todo: implement'}), 501
 
 
 @app.route('/api/boards', methods=['POST'])
 def create_shared_board():
-    """create new shared task board - todo: implement board creation"""
-    # todo: verify auth token
-    # todo: validate board data
-    # todo: create board in database
-    # todo: set creator as admin
-    # todo: return created board data
+    """create new shared task board"""
     return jsonify({'message': 'create shared board endpoint - todo: implement'}), 501
 
 
 @app.route('/api/boards/<int:board_id>/invite', methods=['POST'])
 def invite_to_board(board_id):
-    """invite user to shared board - todo: implement board invitations"""
-    # todo: verify auth token
-    # todo: check board admin permissions
-    # todo: validate email and send invitation
-    # todo: create pending invitation record
-    # todo: return success response
+    """invite user to shared board"""
     return jsonify({'message': f'invite to board {board_id} endpoint - todo: implement'}), 501
 
-# todo: implement analytics routes
+
+@app.route('/api/analytics/tasks', methods=['GET'])
+@jwt_required()
+def get_task_analytics():
+    """Get task completion statistics"""
+    try:
+        auth_id = get_jwt_identity()
+
+        start_date = request.args.get('start_date', date.today().isoformat())
+        end_date = request.args.get('end_date', date.today().isoformat())
+
+        service_supabase = get_service_role_client()
+        stats_response = service_supabase.table('daily_task_stats').select('*').eq(
+            'user_id', auth_id
+        ).gte('date', start_date).lte('date', end_date).order('date').execute()
+
+        stats = stats_response.data if stats_response.data else []
+        total_completed = sum(stat['tasks_completed'] for stat in stats)
+
+        return jsonify({
+            'start_date': start_date,
+            'end_date': end_date,
+            'total_completed': total_completed,
+            'daily_stats': stats,
+            'days_tracked': len(stats)
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/analytics/focus', methods=['GET'])
 def get_focus_analytics():
-    """get focus session analytics - todo: implement analytics"""
-    # todo: verify auth token
-    # todo: query focus session data
-    # todo: calculate productivity metrics
-    # todo: generate visualizations data
-    # todo: return analytics data
+    """get focus session analytics"""
     return jsonify({'message': 'get focus analytics endpoint - todo: implement'}), 501
 
 
 @app.route('/api/analytics/productivity', methods=['GET'])
 def get_productivity_analytics():
-    """get productivity trends and patterns - todo: implement productivity analytics"""
-    # todo: verify auth token
-    # todo: analyze task completion patterns
-    # todo: calculate productivity trends
-    # todo: identify best productivity hours
-    # todo: return analytics with suggestions
+    """get productivity trends and patterns"""
     return jsonify({'message': 'get productivity analytics endpoint - todo: implement'}), 501
-
-# error handlers
 
 
 @app.errorhandler(400)
@@ -503,31 +704,8 @@ def internal_error(error):
 
 
 if __name__ == '__main__':
-    # todo: remove debug=True in production
     app.run(
         debug=os.getenv('FLASK_DEBUG', 'True').lower() == 'true',
         host='0.0.0.0',
         port=int(os.getenv('PORT', 5000))
     )
-
-# todo: major tasks for backend implementation:
-
-# 6. build adaptive scheduling algorithm
-# 7. create xp/gamification system with badges and achievements
-# 8. implement pomodoro timer session tracking
-# 9. build shared task board collaboration features
-# 10. create analytics and reporting functionality
-# 11. add comprehensive error handling and validation
-# 12. implement security measures and rate limiting
-# 13. add logging and monitoring
-# 14. write unit tests for all functionality
-# 15. optimize database queries and add caching where needed
-
-
-# COMPLETED:
-# 1. implement config.py with proper configuration classes
-# 2. set up database connection and models in utils/database.py
-# 3. implement supabase* authentication 
-# 5. implement task crud operations with postgresql
-# 4. create route modules in routes/ directory for better organization
-

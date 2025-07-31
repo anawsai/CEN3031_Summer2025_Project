@@ -44,4 +44,37 @@ export const authAPI = {
   }
 };
 
+// Pomodoro API functions
+export const pomodoroAPI = {
+  startSession: async () => {
+    const response = await api.post('/pomodoro/start');
+    return response.data;
+  },
+  
+  completeSession: async (sessionId) => {
+    const response = await api.post(`/pomodoro/${sessionId}/complete`);
+    return response.data;
+  }
+};
+
+// Analytics API functions
+export const analyticsAPI = {
+  getTaskStats: async (startDate, endDate) => {
+    const params = {};
+    if (startDate) params.start_date = startDate;
+    if (endDate) params.end_date = endDate;
+    
+    const response = await api.get('/analytics/tasks', { params });
+    return response.data;
+  }
+};
+
+// XP API functions
+export const xpAPI = {
+  getUserXP: async () => {
+    const response = await api.get('/xp');
+    return response.data;
+  }
+};
+
 export default api;

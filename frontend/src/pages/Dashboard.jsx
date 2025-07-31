@@ -1,19 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {LogOut} from 'lucide-react';
 import { authAPI } from '../services/api';
 import styles from '../styles/dashboard.module.css';
+import PomodoroTimer from '../components/PomodoroTimer';
+import StatsDisplay from '../components/StatsDisplay';
+import XPBar from '../components/XPBar';
 
-export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenticated }) {
-  // Handle user logout
+export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenticated, xpData, refreshXP, setNotificationQueue, statsRefreshTrigger }) {
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  
   const handleLogout = async () => {
     try {
-      await authAPI.logout(); //backend logout
+      await authAPI.logout();
     } 
     catch (error) {
       console.error('Logout failed:', error);
     } 
     finally {
-      // clear frontend state regardless of backend success
       localStorage.removeItem('access_token');
       localStorage.removeItem('user_data');
       setIsAuthenticated(false);
@@ -24,24 +27,41 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
   return (
     <div className={styles.pageContainer}>
   
-      {/* Logout button */}
+      {isTimerRunning && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          zIndex: 998,
+          pointerEvents: 'auto'
+        }} />
+      )}
+      
+      <XPBar xpData={xpData} refreshXP={refreshXP} />
+      
       <button onClick={handleLogout} className={styles.logoutIconButton} title="Logout">
         <LogOut className={styles.logoutIcon} />
       </button>
   
-      {/* Header */}
-      <h1 className={styles.dashboardTitle}>
+      <h1 className={styles.dashboardTitle} style={{ marginTop: '80px' }}>
         Welcome to your Dashboard
       </h1>
       <p className={styles.subtitle}>
         What would you like to do today?
       </p>
   
-      {/* Main card layout */}
       <div className={styles.cardGrid}>
   
-        {/* My Tasks Card */}
-        <div onClick={() => setCurrentPage('tasks')} className={styles.card}>
+        <div 
+          onClick={() => !isTimerRunning && setCurrentPage('tasks')} 
+          className={styles.card}
+          style={{ 
+            pointerEvents: isTimerRunning ? 'none' : 'auto',
+            opacity: isTimerRunning ? 0.5 : 1
+          }}>
           <h3>My Tasks</h3>
   
           {tasks.length === 0 && (
@@ -64,7 +84,6 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
                     </p>
                   </div>
   
-                  {/* Completion toggle */}
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
@@ -85,21 +104,30 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
           )}
         </div>
   
-        {/* Pomodoro Timer Card */}
-        <div className={styles.card}>
+        <div 
+          className={styles.card}
+          style={{ 
+            position: isTimerRunning ? 'relative' : 'static',
+            zIndex: isTimerRunning ? 999 : 'auto'
+          }}
+        >
           <h3>Pomodoro Timer</h3>
-          <div className={styles.pomodoroCircle}></div>
-          <p style={{ textAlign: 'center', color: '#777' }}>
-            Unlock prizes as you complete tasks!
-          </p>
+          <PomodoroTimer 
+            refreshXP={refreshXP} 
+            setNotificationQueue={setNotificationQueue}
+            onTimerStateChange={setIsTimerRunning}
+          />
         </div>
   
-        {/* Progress / Analytics Card */}
-        <div className={styles.card}>
+        <div 
+          className={styles.card}
+          style={{ 
+            pointerEvents: isTimerRunning ? 'none' : 'auto',
+            opacity: isTimerRunning ? 0.5 : 1
+          }}
+        >
           <h3>Progress / Analytics</h3>
-          <p style={{ color: '#777' }}>
-            Track your focus, productivity, and XP here.
-          </p>
+          <StatsDisplay refreshTrigger={statsRefreshTrigger} />
         </div>
   
       </div>
