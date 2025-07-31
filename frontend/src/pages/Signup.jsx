@@ -34,12 +34,10 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     try {
       const response = await authAPI.register(formData);
       if (response.access_token) {
-        //save token and user data to localStorage
         localStorage.setItem('access_token', response.access_token);
         localStorage.setItem('user_data', JSON.stringify(response.user));
       }
       
-      //reset frontend state
       setIsAuthenticated(true);
       setCurrentPage('dashboard');
     } 
@@ -51,7 +49,6 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     }
   };
 
-  // Calculate progress bar based on step
   const progressPercent = (step / 3) * 100;
 
   return (
@@ -63,10 +60,8 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
       <div className={styles.formContainer}>
         <h2 className={styles.title}>Sign Up</h2>
 
-        {/* Display error message if any */}
         {error && <div className={styles.errorBox}>{error}</div>}
 
-        {/* Progress bar */}
         <div className={styles.progressBar}>
           <div
             className={styles.progressFill}
@@ -74,7 +69,6 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
           ></div>
         </div>
 
-        {/* Step 1: Basic info */}
         {step === 1 && (
           <>
             <input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First Name" className={styles.input} />
@@ -83,7 +77,6 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
           </>
         )}
 
-        {/* Step 2: Academic info */}
         {step === 2 && (
           <>
             <input name="major" value={formData.major} onChange={handleChange} placeholder="Major" className={styles.input} />
@@ -91,7 +84,6 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
           </>
         )}
 
-        {/* Step 3: Account info */}
         {step === 3 && (
           <>
             <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className={styles.input} />
@@ -99,7 +91,6 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
           </>
         )}
 
-        {/* Navigation buttons */}
         <div className={styles.buttonRow}>
           {step > 1 && <button onClick={handleBack} className={styles.button}>Back</button>}
           {step < 3 && <button onClick={handleNext} className={styles.button}>Next</button>}
@@ -114,7 +105,6 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
           )}
         </div>
 
-        {/* Link to Login page */}
         <p onClick={() => setCurrentPage('login')} className={styles.loginLink}>
           Already have an account? Log in
         </p>

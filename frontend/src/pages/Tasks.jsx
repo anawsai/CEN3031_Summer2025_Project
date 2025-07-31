@@ -14,7 +14,6 @@ export function Tasks({
   setTasks
 }) {
 
-  //UI states for modals and task editing/deletion
   const [showModal, setShowModal] = React.useState(false);
   const [showEditModal, setShowEditModal] = React.useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = React.useState(false);
@@ -23,7 +22,6 @@ export function Tasks({
   const [taskToDelete, setTaskToDelete] = React.useState(null);
   const [filter, setFilter] = React.useState('');
 
-// Handle task editing
 const handleEditTask = (task, index) => {
   setEditingTask({
     title: task.title,
@@ -35,7 +33,6 @@ const handleEditTask = (task, index) => {
   setShowEditModal(true);
 };
 
-// Save edited task
 const saveEditedTask = async () => {
   if (!editingTask || editingIndex === null) return;
 
@@ -53,12 +50,10 @@ const saveEditedTask = async () => {
       }
     });
 
-  //update local tasks state
   const updatedTasks = [...tasks];
   updatedTasks[editingIndex] = response.data.task;
   setTasks(updatedTasks);
   
-  //close the modal and reset editing state
   setShowEditModal(false);
   setEditingTask(null);
   setEditingIndex(null);
@@ -69,13 +64,11 @@ const saveEditedTask = async () => {
   }
 };
 
-// Handle task deletion
 const handleDeleteTask = (task, index) => {
   setTaskToDelete({ task, index });
   setShowDeleteConfirm(true);
 };
 
-// Confirm and delete task
 const confirmDelete = async () => {
   if (!taskToDelete) return;
 
@@ -87,11 +80,9 @@ const confirmDelete = async () => {
     }
   });
 
-  //remove the task from local state
   const updatedTasks = tasks.filter((_, index) => index !== taskToDelete.index);
   setTasks(updatedTasks);
 
-  //close the confirmation modal
   setShowDeleteConfirm(false);
   setTaskToDelete(null);
   } 
@@ -101,7 +92,6 @@ const confirmDelete = async () => {
   }
 };
 
-  // Filter tasks based on selected criteria
   let filteredTasks = [...tasks];
   if (filter === 'priority') {
     const priorityOrder = { High: 3, Medium: 2, Low: 1 };
@@ -115,7 +105,7 @@ const confirmDelete = async () => {
     <div className={styles.tasksContainer}>
       <div className={styles.innerContainer}>
 
-        {/* Header with back button */} 
+ 
         <div className={styles.headerRow}>
           <h1 className={styles.headerTitle}> Tasks</h1>
           <button
@@ -126,7 +116,6 @@ const confirmDelete = async () => {
           </button>
         </div>
 
-        {/* Add Task Button */}
         <button
           className={styles.addTaskButton}
           onClick={() => setShowModal(true)}
@@ -134,7 +123,6 @@ const confirmDelete = async () => {
           + Add Task
         </button>
 
-        {/* Sort Dropdown */}
         <div className={styles.sortContainer}>
           <label htmlFor="filter" className={styles.sortLabel}>
             Sort By:
@@ -151,7 +139,6 @@ const confirmDelete = async () => {
           </select>
         </div>
 
-        {/* Task List */}
         <div className={styles.taskListContainer}>
           <TaskList 
             tasks={filteredTasks} 
@@ -162,8 +149,6 @@ const confirmDelete = async () => {
         </div>
       </div>
 
-      {/* ----------------- Modals ------------------*/}
-      {/* Add Task Modal */}
       {showModal && (
         <div className={styles.overlay}>
           <div className={styles.modal}>
@@ -184,7 +169,6 @@ const confirmDelete = async () => {
         </div>
       )}
 
-      {/*Edit Task Modal */}
       {showEditModal && (
         <div className={styles.overlay}>
           <div className={styles.modal}>
@@ -202,7 +186,6 @@ const confirmDelete = async () => {
         </div>
       )}
 
-      {/*Delete Confirmation Modal */}
       {showDeleteConfirm && (
         <div className={styles.overlay}>
           <div className={styles.modal}>

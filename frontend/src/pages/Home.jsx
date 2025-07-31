@@ -7,11 +7,9 @@ export function Home({ setCurrentPage }) {
 
   return (
     <div className={styles.pageContainer}>
-      {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
           
-          {/* Logo + Title */}
           <div className={styles.logoSection}>
             <img 
               alt="SwampScheduler Logo" 
@@ -20,7 +18,6 @@ export function Home({ setCurrentPage }) {
             <h1 className={styles.logoText}>SwampScheduler</h1>
           </div>
 
-          {/* Sign Up + Login */}
           <div className={styles.authButtons}>
             <button onClick={handleSignupClick} className={styles.signupButton}>
               Sign Up
@@ -32,7 +29,6 @@ export function Home({ setCurrentPage }) {
         </div>
       </header>
 
-      {/* Welcome Content */}
       <main className={styles.mainContent}>
         <div className={styles.welcomeBox}>
           <h2 className={styles.welcomeHeading}>The Smart Way to Manage Your Academic Life</h2>
@@ -43,17 +39,17 @@ export function Home({ setCurrentPage }) {
           
           <div className={styles.featureGrid}>
             <div className={styles.featureItem}>
-              <div className={styles.featureIcon}></div> {/* Icon can be added later !!!!!!!!!!!!!*/}
+              <div className={styles.featureIcon}></div>
               <div className={styles.featureTitle}>Smart Task Management</div>
               <div className={styles.featureDescription}>Organize assignments, projects, and deadlines with intelligent prioritization</div>
             </div>
             <div className={styles.featureItem}>
-              <div className={styles.featureIcon}></div>  {/* Icon can be added later !!!!!!!!!!!!!*/}
+              <div className={styles.featureIcon}></div>
               <div className={styles.featureTitle}>Pomodoro Integration</div>
               <div className={styles.featureDescription}>Built-in focus sessions to maximize your study efficiency</div>
             </div>
             <div className={styles.featureItem}>
-              <div className={styles.featureIcon}></div>  {/* Icon can be added later !!!!!!!!!!!!! */}
+              <div className={styles.featureIcon}></div>
               <div className={styles.featureTitle}>Progress Tracking</div>
               <div className={styles.featureDescription}>Visual insights into your productivity patterns and achievements</div>
             </div>
