@@ -7,11 +7,11 @@ import { Signup } from './pages/Signup';
 import { Home } from './pages/Home';
 import { Tasks} from './pages/Tasks';
 import { Dashboard } from './pages/Dashboard';
+import { SharedBoards } from './pages/SharedBoards';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
   const [tasks, setTasks] = useState([]);
-  const [tasksLoading, setTasksLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [notificationQueue, setNotificationQueue] = useState([]);
   const [currentNotification, setCurrentNotification] = useState(null);
@@ -30,12 +30,12 @@ function App() {
   const toggleComplete = (taskIndex) => {
     const task = tasks[taskIndex];
     if (!task) return;
-    
+
     const updatedTasks = tasks.map((t, index) =>
       index === taskIndex ? { ...t, completed: !t.completed } : t
     );
     setTasks(updatedTasks);
-    
+
     api.post(`/tasks/${task.id}/complete`, {}, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('access_token')}`
@@ -95,6 +95,7 @@ function App() {
     }
   };
 
+  //Fetch tasks from backend
   const fetchTasks = async() => {
     try{
         const response = await api.get('http://localhost:5000/api/tasks', {
@@ -209,6 +210,17 @@ const addTask = async () => {
           addTask={addTask}
           setCurrentPage={setCurrentPage}
           toggleComplete={toggleComplete}
+        />
+      );
+    }
+  }
+  else if (currentPage === 'sharedboards') {
+    if (!isAuthenticated) {
+      pageContent = <Home setCurrentPage={setCurrentPage} />;
+    } else {
+      pageContent = (
+        <SharedBoards 
+          setCurrentPage={setCurrentPage}
         />
       );
     }
