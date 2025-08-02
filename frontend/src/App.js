@@ -27,6 +27,27 @@ function App() {
     create_date: new Date().toISOString()
   });
 
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    const userData = localStorage.getItem('user_data');
+    
+    if (token && userData) {
+      setIsAuthenticated(true);
+      const savedPage = localStorage.getItem('currentPage');
+      if (savedPage && savedPage !== 'login' && savedPage !== 'signup') {
+        setCurrentPage(savedPage);
+      } else {
+        setCurrentPage('dashboard'); 
+      }
+    }
+  }, []);
+  
+  useEffect(() => {
+    if (currentPage !== 'home') {
+      localStorage.setItem('currentPage', currentPage);
+    }
+  }, [currentPage]);
+
   const toggleComplete = (taskIndex) => {
     const task = tasks[taskIndex];
     if (!task) return;
