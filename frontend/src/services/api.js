@@ -78,3 +78,13 @@ export const xpAPI = {
 };
 
 export default api;
+
+// Boards API functions
+export const boardsAPI = {
+  getBoards: () => api.get('/boards'),           
+  createBoard: (data) => api.post('/boards', data), 
+  getBoardTasks: (id) => api.get(`/boards/${id}/tasks`), 
+  createBoardTask: (id, data) => api.post(`/boards/${id}/tasks`, data),
+  updateBoardTask: (boardId, taskId, data) => api.put(`/boards/${boardId}/tasks/${taskId}`, data),
+  inviteUser: (id, username) => api.post(`/boards/${id}/invite`, {username})
+};

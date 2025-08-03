@@ -103,6 +103,20 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
             </p>
           )}
         </div>
+
+        <div 
+          onClick={() => !isTimerRunning && setCurrentPage('sharedboards')} 
+          className={styles.card}
+          style={{ 
+            pointerEvents: isTimerRunning ? 'none' : 'auto',
+            opacity: isTimerRunning ? 0.5 : 1,
+            cursor: 'pointer'
+          }}>
+          <h3>Shared Boards</h3>
+          <p style={{ color: '#777', fontSize: '14px' }}>
+            Click to view and manage your shared task boards!
+          </p>
+        </div>
   
         <div 
           className={styles.card}
