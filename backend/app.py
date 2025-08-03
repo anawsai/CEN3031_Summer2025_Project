@@ -614,23 +614,113 @@ def complete_pomodoro_session(session_id):
 
 
 @app.route('/api/boards', methods=['GET'])
+@jwt_required()
 def get_shared_boards():
     """get user's shared task boards"""
-    return jsonify({'message': 'get shared boards endpoint - todo: implement'}), 501
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+        if not user_response.data:
+            return jsonify({'error': 'User profile not found'}), 404
+
+        user_id = user_response.data[0]['id']
+
+        board_response = service_supabase.table('SharedBoards').select('*').eq('user_id', user_id).execute()
+        boards = board_response.data if board_response.data else []
+
+        return jsonify({'boards': boards}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/boards', methods=['POST'])
+@jwt_required()
 def create_shared_board():
     """create new shared task board"""
-    return jsonify({'message': 'create shared board endpoint - todo: implement'}), 501
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        if not name:
+            return jsonify({'error': 'Board name is required'}), 400
+
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+        if not user_response.data:
+            return jsonify({'error': 'User profile not found'}), 404
+
+        user_id = user_response.data[0]['id']
+
+        board_data = {
+            'name': name,
+            'user_id': user_id,
+            # No create_date since it sets to now() default in Supabase - Ant
+        }
+
+        insert_response = service_supabase.table('SharedBoards').insert(board_data).execute()
+        if insert_response.data:
+            return jsonify({
+                'message': 'Board created successfully',
+                'board': insert_response.data[0]
+            }), 201
+        else:
+            return jsonify({'error': 'Failed to create board'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 
 @app.route('/api/boards/<int:board_id>/invite', methods=['POST'])
+@jwt_required()
 def invite_to_board(board_id):
     """invite user to shared board"""
-    return jsonify({'message': f'invite to board {board_id} endpoint - todo: implement'}), 501
+    try:
+        data = request.get_json()
+        invited_email = data.get('email')
 
+        if not invited_email:
+            return jsonify({'error': 'Email to invite is required'}), 400
 
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        # Get requesting user's internal user ID
+        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+        if not user_response.data:
+            return jsonify({'error': 'User not found'}), 404
+        user_id = user_response.data[0]['id']
+
+        # Check if board exists and is owned by this user
+        board_check = service_supabase.table('SharedBoards').select('id').eq('id', board_id).eq('user_id', user_id).execute()
+        if not board_check.data:
+            return jsonify({'error': 'Board not found or unauthorized'}), 403
+
+        # Insert invite
+        invite_data = {
+            'board_id': board_id,
+            'invited_email': invited_email,
+            'invited_by': user_id,
+            'status': 'pending'
+        }
+
+        invite_response = service_supabase.table('BoardInvites').insert(invite_data).execute()
+
+        if invite_response.data:
+            return jsonify({
+                'message': f'User invited to board {board_id}',
+                'invite': invite_response.data[0]
+            }), 201
+        else:
+            return jsonify({'error': 'Failed to send invite'}), 500
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 @app.route('/api/analytics/tasks', methods=['GET'])
 @jwt_required()
 def get_task_analytics():
