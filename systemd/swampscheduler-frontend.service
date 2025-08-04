@@ -1,0 +1,21 @@
+[Unit]
+Description=SwampScheduler Frontend Build Service
+After=network.target swampscheduler-backend.service
+Requires=swampscheduler-backend.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=swampscheduler
+Group=swampscheduler
+WorkingDirectory=/home/swampscheduler/CEN3031_Summer2025_Project
+Environment="PATH=/usr/local/bin:/usr/bin:/bin"
+ExecStart=/usr/bin/nix develop --impure -c frontend-prod
+ExecStartPost=/bin/echo "Frontend build complete. Static files ready to be served."
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
