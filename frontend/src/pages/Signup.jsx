@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
+import api from '../services/api';
 import styles from '../styles/signup.module.css';
 
 export function Signup({
@@ -20,9 +21,99 @@ export function Signup({
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState({
+    hasMinLength: false,
+    hasNumber: false,
+    hasSymbol: false,
+  });
+  const [usernameStatus, setUsernameStatus] = useState({
+    checking: false,
+    available: null,
+    message: '',
+  });
+  const [checkingUsername, setCheckingUsername] = useState(null);
+
+  const validatePassword = (password) => {
+    const minLength = password.length >= 6;
+    const hasNumber = /\d/.test(password);
+    const hasSymbol = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    setPasswordStrength({
+      hasMinLength: minLength,
+      hasNumber: hasNumber,
+      hasSymbol: hasSymbol,
+    });
+
+    if (!minLength || !hasNumber || !hasSymbol) {
+      setPasswordError(
+        'Password must be at least 6 characters with 1 number and 1 symbol'
+      );
+      return false;
+    }
+
+    setPasswordError('');
+    return true;
+  };
+
+  const checkUsernameAvailability = async (username) => {
+    if (!username || username.length < 3) {
+      setUsernameStatus({
+        checking: false,
+        available: false,
+        message:
+          username.length > 0 ? 'Username must be at least 3 characters' : '',
+      });
+      return;
+    }
+
+    setUsernameStatus({
+      checking: true,
+      available: null,
+      message: 'Checking...',
+    });
+
+    try {
+      const response = await api.post('/auth/check-username', { username });
+      setUsernameStatus({
+        checking: false,
+        available: response.data.available,
+        message: response.data.message,
+      });
+    } catch (error) {
+      setUsernameStatus({
+        checking: false,
+        available: null,
+        message: 'Error checking username',
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (checkingUsername) {
+      clearTimeout(checkingUsername);
+    }
+
+    if (formData.username) {
+      const timeout = setTimeout(() => {
+        checkUsernameAvailability(formData.username);
+      }, 500); // Debounce for 500ms
+      setCheckingUsername(timeout);
+    }
+
+    return () => {
+      if (checkingUsername) {
+        clearTimeout(checkingUsername);
+      }
+    };
+  }, [formData.username]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+
+    if (e.target.name === 'password') {
+      validatePassword(e.target.value);
+    }
   };
 
   const handleNext = () => {
@@ -34,6 +125,18 @@ export function Signup({
   };
 
   const handleSubmit = async () => {
+    // Validate password before submission
+    if (!validatePassword(formData.password)) {
+      setError('Please fix the password requirements');
+      return;
+    }
+
+    // Check if username is available
+    if (!usernameStatus.available) {
+      setError('Please choose an available username');
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -83,6 +186,7 @@ export function Signup({
               onChange={handleChange}
               placeholder='First Name'
               className={styles.input}
+              required
             />
             <input
               name='lastName'
@@ -90,13 +194,7 @@ export function Signup({
               onChange={handleChange}
               placeholder='Last Name'
               className={styles.input}
-            />
-            <input
-              name='username'
-              value={formData.username}
-              onChange={handleChange}
-              placeholder='Username'
-              className={styles.input}
+              required
             />
           </>
         )}
@@ -129,12 +227,42 @@ export function Signup({
         {step === 3 && (
           <>
             <input
+              name='username'
+              value={formData.username}
+              onChange={handleChange}
+              placeholder='Username'
+              className={`${styles.input} ${
+                formData.username && !usernameStatus.checking
+                  ? usernameStatus.available
+                    ? styles.inputSuccess
+                    : styles.inputError
+                  : ''
+              }`}
+              required
+            />
+            {formData.username && (
+              <div className={styles.usernameStatus}>
+                <span
+                  className={
+                    usernameStatus.checking
+                      ? styles.statusChecking
+                      : usernameStatus.available
+                        ? styles.statusAvailable
+                        : styles.statusUnavailable
+                  }
+                >
+                  {usernameStatus.message}
+                </span>
+              </div>
+            )}
+            <input
               type='email'
               name='email'
               value={formData.email}
               onChange={handleChange}
               placeholder='Email'
               className={styles.input}
+              required
             />
             <input
               type='password'
@@ -142,8 +270,29 @@ export function Signup({
               value={formData.password}
               onChange={handleChange}
               placeholder='Password'
-              className={styles.input}
+              className={`${styles.input} ${passwordError && formData.password ? styles.inputError : ''}`}
+              required
             />
+            {formData.password && (
+              <div className={styles.passwordRequirements}>
+                <div
+                  className={`${styles.requirement} ${passwordStrength.hasMinLength ? styles.requirementMet : ''}`}
+                >
+                  {passwordStrength.hasMinLength ? '✓' : '○'} At least 6
+                  characters
+                </div>
+                <div
+                  className={`${styles.requirement} ${passwordStrength.hasNumber ? styles.requirementMet : ''}`}
+                >
+                  {passwordStrength.hasNumber ? '✓' : '○'} Contains a number
+                </div>
+                <div
+                  className={`${styles.requirement} ${passwordStrength.hasSymbol ? styles.requirementMet : ''}`}
+                >
+                  {passwordStrength.hasSymbol ? '✓' : '○'} Contains a symbol
+                </div>
+              </div>
+            )}
           </>
         )}
 

@@ -8,6 +8,7 @@ import { Home } from './pages/Home';
 import { Tasks } from './pages/Tasks';
 import { Dashboard } from './pages/Dashboard';
 import { SharedBoards } from './pages/SharedBoards';
+import { Analytics } from './pages/Analytics';
 import Profile from './pages/Profile';
 
 function App() {
@@ -217,6 +218,7 @@ function App() {
           addTask={addTask}
           setCurrentPage={setCurrentPage}
           setIsAuthenticated={setIsAuthenticated}
+          isAuthenticated={isAuthenticated}
           toggleComplete={toggleComplete}
           xpData={xpData}
           refreshXP={fetchXPData}
@@ -277,6 +279,12 @@ function App() {
           statsRefreshTrigger={statsRefreshTrigger}
         />
       );
+    }
+  } else if (currentPage === 'analytics') {
+    if (!isAuthenticated) {
+      pageContent = <Home setCurrentPage={setCurrentPage} />;
+    } else {
+      pageContent = <Analytics setCurrentPage={setCurrentPage} />;
     }
   } else {
     pageContent = <div>Page not found</div>;

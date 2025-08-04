@@ -3,6 +3,9 @@ import styles from '../../styles/modal.module.css';
 
 const InviteUserModal = ({ onClose, onInvite }) => {
   const [username, setUsername] = useState('');
+  const [message, setMessage] = useState(
+    "Hi! I'd like to invite you to my Taskboard!"
+  );
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -15,7 +18,7 @@ const InviteUserModal = ({ onClose, onInvite }) => {
 
     setLoading(true);
     try {
-      await onInvite(username.trim());
+      await onInvite(username.trim(), message.trim());
     } catch (error) {
       console.error('Error inviting user:', error);
     } finally {
@@ -50,11 +53,33 @@ const InviteUserModal = ({ onClose, onInvite }) => {
             required
           />
 
+          <textarea
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder='Add a message (optional)'
+            className={styles.textarea}
+            rows={3}
+            style={{
+              marginTop: '16px',
+              resize: 'vertical',
+              minHeight: '60px',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(250, 70, 22, 0.3)',
+              borderRadius: '8px',
+              padding: '12px',
+              color: '#ffffff',
+              fontSize: '14px',
+              width: '100%',
+              boxSizing: 'border-box',
+            }}
+          />
+
           <p
             style={{
               color: 'rgba(255, 255, 255, 0.7)',
               fontSize: '14px',
               marginBottom: '20px',
+              marginTop: '16px',
               textAlign: 'center',
             }}
           >

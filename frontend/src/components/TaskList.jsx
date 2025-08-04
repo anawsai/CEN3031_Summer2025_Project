@@ -77,11 +77,13 @@ export function TaskList({ tasks, toggleComplete, onEditTask, onDeleteTask }) {
               </button>
             </div>
 
-            <div
-              onClick={() => toggleComplete(index)}
-              className={`${styles.toggleComplete} ${task.completed ? styles.checked : ''}`}
-              title={task.completed ? 'Completed' : 'Mark as Done'}
-            />
+            {!task.completed && (
+              <div
+                onClick={() => toggleComplete(index)}
+                className={`${styles.toggleComplete} ${task.completed ? styles.checked : ''}`}
+                title={task.completed ? 'Completed' : 'Mark as Done'}
+              />
+            )}
           </div>
         </div>
       ))}
@@ -97,13 +99,17 @@ export function TaskList({ tasks, toggleComplete, onEditTask, onDeleteTask }) {
               zIndex: 999999,
             }}
           >
-            <button
-              className={styles.dropdownItem}
-              onClick={(e) => handleEdit(e, tasks[openDropdown], openDropdown)}
-            >
-              <Edit2 size={14} />
-              Edit
-            </button>
+            {!tasks[openDropdown]?.completed && (
+              <button
+                className={styles.dropdownItem}
+                onClick={(e) =>
+                  handleEdit(e, tasks[openDropdown], openDropdown)
+                }
+              >
+                <Edit2 size={14} />
+                Edit
+              </button>
+            )}
             <button
               className={styles.dropdownItem}
               onClick={(e) =>

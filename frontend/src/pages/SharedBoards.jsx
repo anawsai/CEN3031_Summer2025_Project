@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Users, Crown, User, Trash2 } from 'lucide-react';
-import { boardsAPI } from '../services/api';
+import {
+  ArrowLeft,
+  Plus,
+  Users,
+  Crown,
+  User,
+  Trash2,
+  Inbox,
+  Check,
+  X,
+  MessageSquare,
+} from 'lucide-react';
+import { boardsAPI, invitesAPI } from '../services/api';
 import CreateBoardModal from '../components/modals/CreateBoardModal';
 import TaskBoard from '../components/TaskBoard';
 import styles from '../styles/sharedboards.module.css';
@@ -11,9 +22,12 @@ export function SharedBoards({ setCurrentPage }) {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedBoard, setSelectedBoard] = useState(null);
   const [showBoardView, setShowBoardView] = useState(false);
+  const [invites, setInvites] = useState([]);
+  const [showInvites, setShowInvites] = useState(false);
 
   useEffect(() => {
     fetchBoards();
+    fetchInvites();
   }, []);
 
   const fetchBoards = async () => {
@@ -26,6 +40,15 @@ export function SharedBoards({ setCurrentPage }) {
       setBoards([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInvites = async () => {
+    try {
+      const response = await invitesAPI.getInvites();
+      setInvites(response.data.invites || []);
+    } catch (error) {
+      console.error('Failed to fetch invites:', error);
     }
   };
 
@@ -49,6 +72,26 @@ export function SharedBoards({ setCurrentPage }) {
     setShowBoardView(false);
     setSelectedBoard(null);
     fetchBoards();
+  };
+
+  const handleAcceptInvite = async (inviteId) => {
+    try {
+      await invitesAPI.acceptInvite(inviteId);
+      await fetchInvites();
+      await fetchBoards();
+      alert('Invite accepted! You can now access the board.');
+    } catch (error) {
+      alert('Failed to accept invite');
+    }
+  };
+
+  const handleDeclineInvite = async (inviteId) => {
+    try {
+      await invitesAPI.declineInvite(inviteId);
+      await fetchInvites();
+    } catch (error) {
+      alert('Failed to decline invite');
+    }
   };
 
   const handleDeleteBoard = async (e, boardId, boardName) => {
@@ -99,16 +142,69 @@ export function SharedBoards({ setCurrentPage }) {
             or join existing ones to work together on projects.
           </p>
 
-          {!loading && boards.length > 0 && (
+          <div style={{ display: 'flex', gap: '12px' }}>
             <button
-              onClick={() => setShowCreateModal(true)}
-              className={styles.createButton}
+              onClick={() => invites.length > 0 && setShowInvites(!showInvites)}
+              className={styles.inviteButton}
+              disabled={invites.length === 0}
+              style={{
+                opacity: invites.length === 0 ? 0.5 : 1,
+                cursor: invites.length === 0 ? 'not-allowed' : 'pointer',
+              }}
             >
-              <Plus size={16} />
-              Create New Board
+              <Inbox size={16} />
+              Invites ({invites.length})
             </button>
-          )}
+
+            {!loading && (
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className={styles.createButton}
+              >
+                <Plus size={16} />
+                Create New Board
+              </button>
+            )}
+          </div>
         </div>
+
+        {showInvites && invites.length > 0 && (
+          <div className={styles.invitesSection}>
+            <h3>Pending Invitations</h3>
+            <div className={styles.invitesList}>
+              {invites.map((invite) => (
+                <div key={invite.id} className={styles.inviteCard}>
+                  <div className={styles.inviteInfo}>
+                    <h4>{invite.board_name}</h4>
+                    <p>Invited by {invite.invited_by}</p>
+                    {invite.message && (
+                      <div className={styles.inviteMessage}>
+                        <MessageSquare size={14} />
+                        <p>{invite.message}</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className={styles.inviteActions}>
+                    <button
+                      onClick={() => handleAcceptInvite(invite.id)}
+                      className={styles.acceptButton}
+                    >
+                      <Check size={16} />
+                      Accept
+                    </button>
+                    <button
+                      onClick={() => handleDeclineInvite(invite.id)}
+                      className={styles.declineButton}
+                    >
+                      <X size={16} />
+                      Decline
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {loading && (
           <div className={styles.loading}>

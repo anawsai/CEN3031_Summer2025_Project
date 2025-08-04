@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Calendar, User, Flag } from 'lucide-react';
+import { Calendar, User, Flag, Trash2 } from 'lucide-react';
 import styles from '../styles/taskcard.module.css';
 
-const TaskCard = ({ task, onUpdate, onDragStart }) => {
+const TaskCard = ({ task, onUpdate, onDragStart, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
     title: task.title,
     description: task.description || '',
     priority: task.priority,
     due_date: task.due_date || '',
+    assigned_to: task.assigned_to || '',
   });
 
   const handleEdit = () => {
@@ -26,6 +27,7 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
       description: task.description || '',
       priority: task.priority,
       due_date: task.due_date || '',
+      assigned_to: task.assigned_to || '',
     });
     setIsEditing(false);
   };
@@ -109,6 +111,16 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
             />
           </div>
 
+          <input
+            type='text'
+            value={editData.assigned_to}
+            onChange={(e) =>
+              setEditData({ ...editData, assigned_to: e.target.value })
+            }
+            className={styles.editInput}
+            placeholder='Assign to username'
+          />
+
           <div className={styles.editActions}>
             <button onClick={handleCancel} className={styles.cancelButton}>
               Cancel
@@ -122,12 +134,26 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
         <>
           <div className={styles.taskHeader}>
             <h4 className={styles.taskTitle}>{task.title}</h4>
-            <div
-              className={styles.priorityBadge}
-              style={{ backgroundColor: getPriorityColor(task.priority) }}
-            >
-              <Flag size={12} />
-              {task.priority}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <div
+                className={styles.priorityBadge}
+                style={{ backgroundColor: getPriorityColor(task.priority) }}
+              >
+                <Flag size={12} />
+                {task.priority}
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (window.confirm('Delete this task?')) {
+                    onDelete();
+                  }
+                }}
+                className={styles.deleteButton}
+                title='Delete task'
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           </div>
 
@@ -145,10 +171,10 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
               </div>
             )}
 
-            {task.assigned_to_user && (
+            {task.assigned_to && (
               <div className={styles.metaItem}>
                 <User size={14} />
-                <span>{task.assigned_to_user.username}</span>
+                <span>{task.assigned_to}</span>
               </div>
             )}
           </div>

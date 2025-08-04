@@ -49,6 +49,51 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
+.tabContainer {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.tab {
+  background-color: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 24px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.tab:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.activeTab {
+  background-color: rgba(255, 111, 0, 0.2);
+  color: #ff6f00;
+  font-weight: 600;
+}
+
+.activeTab::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 2px;
+  background-color: #ff6f00;
+  border-radius: 2px;
+}
+
 .backButton {
   background: transparent;
   color: #ff6f00;
@@ -113,7 +158,6 @@
   margin-top: 40px;
 }
 
-/* Modal */
 .overlay {
   position: fixed;
   top: 0;

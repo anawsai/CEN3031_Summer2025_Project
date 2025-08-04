@@ -161,3 +161,53 @@
 .loginLink:hover {
   color: #ff8f00;
 }
+
+.passwordRequirements {
+  width: 100%;
+  margin-top: -10px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.requirement {
+  color: rgba(255, 255, 255, 0.6);
+  padding: 4px 0;
+  transition: color 0.2s ease;
+}
+
+.requirementMet {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.inputError {
+  border-color: #ff4444 !important;
+}
+
+.inputSuccess {
+  border-color: #4caf50 !important;
+}
+
+.usernameStatus {
+  width: 100%;
+  margin-top: -10px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+.statusChecking {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.statusAvailable {
+  color: #4caf50;
+  font-weight: 500;
+}
+
+.statusUnavailable {
+  color: #ff4444;
+  font-weight: 500;
+}

@@ -1,12 +1,29 @@
 import React from 'react';
 
 const XPBar = ({ xpData, refreshXP }) => {
+  console.log('XPBar received xpData:', xpData);
+
   if (!xpData) {
     return null;
   }
 
-  const xpInLevel = xpData.total_xp - xpData.min_xp_for_level;
-  const xpNeededForLevel = xpData.max_xp_for_level - xpData.min_xp_for_level;
+  const level = xpData.level || 0;
+  const levelName = xpData.level_name || '';
+  const isMaxLevel = level === 10;
+
+  const totalXp = xpData.total_xp || 0;
+  const minXp = xpData.min_xp_for_level || 0;
+  const maxXp =
+    !xpData.max_xp_for_level || !isFinite(xpData.max_xp_for_level)
+      ? isMaxLevel
+        ? minXp
+        : 100
+      : xpData.max_xp_for_level;
+
+  const xpInLevel = totalXp - minXp;
+  const xpNeededForLevel = isMaxLevel ? 0 : maxXp - minXp;
+
+  const progressPercent = isMaxLevel ? 100 : xpData.progress_percent || 0;
 
   return (
     <div
@@ -37,7 +54,7 @@ const XPBar = ({ xpData, refreshXP }) => {
               fontWeight: 'bold',
             }}
           >
-            Level {xpData.level}: {xpData.level_name}
+            Level {level}: {levelName}
           </h3>
         </div>
         <div
@@ -47,7 +64,7 @@ const XPBar = ({ xpData, refreshXP }) => {
             fontSize: '16px',
           }}
         >
-          {xpData.total_xp} XP
+          {totalXp} XP
         </div>
       </div>
 
@@ -65,7 +82,7 @@ const XPBar = ({ xpData, refreshXP }) => {
           style={{
             backgroundColor: '#FA4616',
             height: '100%',
-            width: `${xpData.progress_percent}%`,
+            width: `${progressPercent}%`,
             transition: 'width 0.5s ease-in-out',
             background: 'linear-gradient(90deg, #FA4616 0%, #0021A5 100%)',
           }}
@@ -83,7 +100,9 @@ const XPBar = ({ xpData, refreshXP }) => {
             textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)',
           }}
         >
-          {xpInLevel} / {xpNeededForLevel} XP
+          {isMaxLevel
+            ? `${totalXp} XP`
+            : `${xpInLevel} / ${xpNeededForLevel} XP`}
         </div>
       </div>
 
