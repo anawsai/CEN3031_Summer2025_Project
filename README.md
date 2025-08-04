@@ -81,17 +81,20 @@ We have a fully reproducible build setup using Nix for both development and prod
 ### Quick Start with Nix
 
 1. **Install Nix** (if you haven't already. we use the determinate nix installer below):
+
    ```sh
    curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
    ```
 
 2. **Clone and enter the project**:
+
    ```sh
    git clone https://github.com/yourusername/swampscheduler.git
    cd swampscheduler
    ```
 
 3. **Enter the development environment**:
+
    ```sh
    nix develop --impure
    ```
@@ -112,14 +115,14 @@ That's it! Nix handles all dependencies, environment setup, and configuration fo
 
 ## Current Status
 
--  Flask backend running
--  Supabase connected
--  Full authentication system
--  Task management with XP/gamification
--  Pomodoro timer
--  Shared boards
--  Achievement system
--  Production deployment ready
+- Flask backend running
+- Supabase connected
+- Full authentication system
+- Task management with XP/gamification
+- Pomodoro timer
+- Shared boards
+- Achievement system
+- Production deployment ready
 
 ## Tech Stack
 
