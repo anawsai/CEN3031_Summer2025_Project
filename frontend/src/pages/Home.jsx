@@ -10,7 +10,13 @@ export function Home({ setCurrentPage }) {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.logoSection}>
-            <img alt='SwampScheduler Logo' className={styles.logoImage} />
+            <img 
+              src="/Swamp_Scheduler_Logo.jpg" 
+              alt = "SwampScheduler Logo"
+              width={48}     
+              height={48}
+              className={styles.logoImage}  
+            />
             <h1 className={styles.logoText}>SwampScheduler</h1>
           </div>
 
