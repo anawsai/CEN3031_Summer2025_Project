@@ -51,7 +51,15 @@ function App() {
     }
   }, [currentPage]);
 
-  const toggleComplete = (taskIndex) => {
+  const toggleComplete = (taskIdOrTask) => {
+    // Handle both index (from Dashboard) and task object (from TaskList)
+    let taskIndex;
+    if (typeof taskIdOrTask === 'number') {
+      taskIndex = taskIdOrTask;
+    } else {
+      const taskId = taskIdOrTask.id || taskIdOrTask;
+      taskIndex = tasks.findIndex((t) => t.id === taskId);
+    }
     const task = tasks[taskIndex];
     if (!task) return;
 
@@ -139,7 +147,7 @@ function App() {
   //Fetch tasks from backend
   const fetchTasks = async () => {
     try {
-      const response = await api.get('http://localhost:5000/api/tasks', {
+      const response = await api.get('/tasks', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('access_token')}`,
         },
@@ -173,7 +181,7 @@ function App() {
     if (newTask.title.trim() !== '') {
       try {
         const response = await api.post(
-          'http://localhost:5000/api/tasks',
+          '/tasks',
           {
             title: newTask.title,
             description: newTask.description,

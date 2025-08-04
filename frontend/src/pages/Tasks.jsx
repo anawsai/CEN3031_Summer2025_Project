@@ -83,9 +83,7 @@ export function Tasks({
         },
       });
 
-      const updatedTasks = tasks.filter(
-        (_, index) => index !== taskToDelete.index
-      );
+      const updatedTasks = tasks.filter((t) => t.id !== taskId);
       setTasks(updatedTasks);
 
       setShowDeleteConfirm(false);
