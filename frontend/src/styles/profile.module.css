@@ -1,0 +1,274 @@
+.pageContainer {
+    min-height: 100vh;
+    background: #002040;
+    background-image: 
+      radial-gradient(circle at 25% 25%, rgba(255, 111, 0, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 75% 75%, rgba(0, 51, 102, 0.3) 0%, transparent 50%);
+    padding: 24px;
+    color: #f4f4f4;
+}
+  
+.innerContainer {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+  
+.backButton {
+    background: transparent;
+    border: 1px solid #ff6f00;
+    color: #ff6f00;
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-bottom: 32px;
+}
+  
+.backButton:hover {
+    background-color: rgba(255, 111, 0, 0.1);
+    transform: translateY(-1px);
+}
+  
+.profileCard {
+    background: linear-gradient(135deg, rgba(0, 34, 68, 0.8), rgba(0, 51, 102, 0.6));
+    border-radius: 24px;
+    padding: 40px;
+    margin-bottom: 32px;
+    border: 1px solid rgba(255, 111, 0, 0.3);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+  
+.profileCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff6f00, #ff8f00, #ff6f00);
+    border-radius: 24px 24px 0 0;
+}
+  
+.userHeader {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+  
+.avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #ff6f00, #ff8f00);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(255, 111, 0, 0.4);
+}
+  
+.userInfo h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: bold;
+    color: #ff6f00;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+  
+.userInfo .fullName {
+    margin: 4px 0 0 0;
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.8);
+}
+  
+.userInfo .email {
+    margin: 4px 0 0 0;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.6);
+}
+  
+.xpHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+  
+.xpTitle {
+    margin: 0;
+    color: #ffffff;
+    font-size: 18px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+  
+.xpAmount {
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 16px;
+}
+  
+.xpBarContainer {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    height: 24px;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid #ff6f00;
+}
+  
+.xpBar {
+    background: linear-gradient(90deg, #ff6f00 0%, #ff8f00 100%);
+    height: 100%;
+    transition: width 0.5s ease-in-out;
+}
+  
+.xpBarText {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 12px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+  
+.xpFooter {
+    margin-top: 8px;
+    color: #ffffff;
+    font-size: 14px;
+    text-align: center;
+}
+  
+.achievementsCard {
+    background: linear-gradient(135deg, rgba(0, 34, 68, 0.8), rgba(0, 51, 102, 0.6));
+    border-radius: 24px;
+    padding: 40px;
+    border: 1px solid rgba(255, 111, 0, 0.3);
+    backdrop-filter: blur(20px);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+  
+.achievementsCard::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #ff6f00, #ff8f00, #ff6f00);
+    border-radius: 24px 24px 0 0;
+}
+  
+.achievementsTitle {
+    margin: 0 0 24px 0;
+    color: #ff6f00;
+    font-size: 28px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+  
+.loading,
+.noData {
+    text-align: center;
+    padding: 40px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+}
+  
+.sectionTitle {
+    margin: 0 0 16px 0;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+  
+.earnedTitle {
+    color: #4CAF50;
+}
+  
+.lockedTitle {
+    color: rgba(255, 255, 255, 0.6);
+}
+  
+.achievementsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+}
+  
+.earnedSection {
+    margin-bottom: 32px;
+}
+  
+.achievementItem {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border-radius: 16px;
+    backdrop-filter: blur(10px);
+}
+  
+.achievementEarned {
+    background: rgba(76, 175, 80, 0.1);
+    border: 2px solid rgba(76, 175, 80, 0.3);
+}
+  
+.achievementLocked {
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    opacity: 0.7;
+}
+  
+.achievementIcon {
+    font-size: 40px;
+    margin-right: 16px;
+}
+  
+.achievementIconLocked {
+    filter: grayscale(1);
+}
+  
+.achievementContent {
+    flex: 1;
+}
+  
+.achievementName {
+    font-weight: bold;
+    color: #ffffff;
+    font-size: 18px;
+    margin-bottom: 4px;
+}
+  
+.achievementDescription {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+  
+.achievementEarnedInfo {
+    color: #4CAF50;
+    font-size: 12px;
+}
+  
+.achievementLockedInfo {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+}

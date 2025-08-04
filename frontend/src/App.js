@@ -8,6 +8,7 @@ import { Home } from './pages/Home';
 import { Tasks} from './pages/Tasks';
 import { Dashboard } from './pages/Dashboard';
 import { SharedBoards } from './pages/SharedBoards';
+import Profile from './pages/Profile';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -242,6 +243,19 @@ const addTask = async () => {
       pageContent = (
         <SharedBoards 
           setCurrentPage={setCurrentPage}
+        />
+      );
+    }
+  }
+  else if (currentPage === 'profile') {
+    if (!isAuthenticated) {
+      pageContent = <Home setCurrentPage={setCurrentPage} />;
+    } else {
+      pageContent = (
+        <Profile
+          setCurrentPage={setCurrentPage}
+          xpData={xpData}
+          statsRefreshTrigger={statsRefreshTrigger}
         />
       );
     }

@@ -5,6 +5,7 @@ import styles from '../styles/dashboard.module.css';
 import PomodoroTimer from '../components/PomodoroTimer';
 import StatsDisplay from '../components/StatsDisplay';
 import XPBar from '../components/XPBar';
+import ProfileButton from '../components/ProfileButton';
 
 export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenticated, xpData, refreshXP, setNotificationQueue, statsRefreshTrigger }) {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -42,9 +43,23 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
       
       <XPBar xpData={xpData} refreshXP={refreshXP} />
       
-      <button onClick={handleLogout} className={styles.logoutIconButton} title="Logout">
-        <LogOut className={styles.logoutIcon} />
-      </button>
+      <div style={{ 
+        position: 'absolute', 
+        top: '20px', 
+        right: '20px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        alignItems: 'center'
+      }}>
+        <button onClick={handleLogout} className={styles.logoutIconButton} title="Logout">
+          <LogOut className={styles.logoutIcon} />
+        </button>
+        
+        <ProfileButton 
+          setCurrentPage={setCurrentPage}
+        />
+      </div>
   
       <h1 className={styles.dashboardTitle} style={{ marginTop: '80px' }}>
         Welcome to your Dashboard
