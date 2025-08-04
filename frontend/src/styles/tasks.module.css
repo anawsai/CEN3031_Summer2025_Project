@@ -9,7 +9,11 @@
 .innerContainer {
   max-width: 800px;
   width: 100%;
-  background: linear-gradient(135deg, rgba(0, 34, 68, 0.8), rgba(0, 51, 102, 0.6));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 34, 68, 0.8),
+    rgba(0, 51, 102, 0.6)
+  );
   padding: 40px;
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -112,7 +116,10 @@
 /* Modal */
 .overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
@@ -122,7 +129,11 @@
 }
 
 .modal {
-  background: linear-gradient(135deg, rgba(0, 34, 68, 0.9), rgba(0, 51, 102, 0.8));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 34, 68, 0.9),
+    rgba(0, 51, 102, 0.8)
+  );
   padding: 40px;
   border-radius: 24px;
   max-width: 600px;

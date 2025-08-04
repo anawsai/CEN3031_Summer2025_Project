@@ -1,9 +1,9 @@
-import React, {useState, useRef} from 'react';
+import React, { useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { MoreVertical, Edit2, Trash2 } from 'lucide-react';
 import styles from '../styles/tasklist.module.css';
 
-export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
+export function TaskList({ tasks, toggleComplete, onEditTask, onDeleteTask }) {
   const [openDropdown, setOpenDropdown] = useState(null);
   const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   const triggerRefs = useRef({});
@@ -18,21 +18,21 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
 
   const handleDropdownClick = (e, index) => {
     e.stopPropagation();
-    
+
     if (openDropdown === index) {
       setOpenDropdown(null);
       return;
     }
-    
+
     const button = triggerRefs.current[index];
     if (button) {
       const rect = button.getBoundingClientRect();
       setDropdownPosition({
-        top: rect.bottom + window.scrollY + 5, 
-        left: rect.left + window.scrollX - 100 
+        top: rect.bottom + window.scrollY + 5,
+        left: rect.left + window.scrollX - 100,
       });
     }
-    
+
     setOpenDropdown(index);
   };
 
@@ -50,9 +50,7 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
 
   return (
     <div className={styles.container}>
-      <h3 className={styles.heading}>
-         My Tasks ({tasks.length})
-      </h3>
+      <h3 className={styles.heading}>My Tasks ({tasks.length})</h3>
 
       {tasks.map((task, index) => (
         <div
@@ -70,51 +68,54 @@ export function TaskList({tasks, toggleComplete, onEditTask, onDeleteTask}) {
           <div className={styles.taskActions}>
             <div className={styles.dropdownContainer}>
               <button
-                ref={el => triggerRefs.current[index] = el}
+                ref={(el) => (triggerRefs.current[index] = el)}
                 className={styles.dropdownTrigger}
                 onClick={(e) => handleDropdownClick(e, index)}
-                title="More options"
+                title='More options'
               >
                 <MoreVertical size={16} />
               </button>
             </div>
 
-          <div
-            onClick={() => toggleComplete(index)}
-            className={`${styles.toggleComplete} ${task.completed ? styles.checked : ''}`}
-            title={task.completed ? 'Completed' : 'Mark as Done'}
-          />
+            <div
+              onClick={() => toggleComplete(index)}
+              className={`${styles.toggleComplete} ${task.completed ? styles.checked : ''}`}
+              title={task.completed ? 'Completed' : 'Mark as Done'}
+            />
           </div>
         </div>
       ))}
-      
-      {openDropdown !== null && createPortal(
-        <div 
-          className={styles.dropdownMenu}
-          style={{
-            position: 'absolute',
-            top: dropdownPosition.top,
-            left: dropdownPosition.left,
-            zIndex: 999999
-          }}
-        >
-          <button
-            className={styles.dropdownItem}
-            onClick={(e) => handleEdit(e, tasks[openDropdown], openDropdown)}
+
+      {openDropdown !== null &&
+        createPortal(
+          <div
+            className={styles.dropdownMenu}
+            style={{
+              position: 'absolute',
+              top: dropdownPosition.top,
+              left: dropdownPosition.left,
+              zIndex: 999999,
+            }}
           >
-            <Edit2 size={14} />
-            Edit
-          </button>
-          <button
-            className={styles.dropdownItem}
-            onClick={(e) => handleDelete(e, tasks[openDropdown], openDropdown)}
-          >
-            <Trash2 size={14} />
-            Delete
-          </button>
-        </div>,
-        document.body
-      )}
+            <button
+              className={styles.dropdownItem}
+              onClick={(e) => handleEdit(e, tasks[openDropdown], openDropdown)}
+            >
+              <Edit2 size={14} />
+              Edit
+            </button>
+            <button
+              className={styles.dropdownItem}
+              onClick={(e) =>
+                handleDelete(e, tasks[openDropdown], openDropdown)
+              }
+            >
+              <Trash2 size={14} />
+              Delete
+            </button>
+          </div>,
+          document.body
+        )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
-from supabase import create_client, Client
 import os
+
+from supabase import Client, create_client
 
 supabase_client: Client = None
 
@@ -7,12 +8,11 @@ supabase_client: Client = None
 def init_supabase():
     """Initialize Supabase client"""
     global supabase_client
-    url = os.getenv('SUPABASE_URL')
-    key = os.getenv('SUPABASE_ANON_KEY')
+    url = os.getenv("SUPABASE_URL")
+    key = os.getenv("SUPABASE_ANON_KEY")
 
     if not url or not key:
-        raise ValueError(
-            "Missing Supabase configuration. Check your .env file.")
+        raise ValueError("Missing Supabase configuration. Check your .env file.")
 
     supabase_client = create_client(url, key)
     return supabase_client
@@ -28,12 +28,13 @@ def get_supabase_client():
 
 def get_service_role_client():
     """get Supabase client with service role (bypasses RLS)"""
-    from supabase import create_client
     import os
 
-    url = os.getenv('SUPABASE_URL')
+    from supabase import create_client
+
+    url = os.getenv("SUPABASE_URL")
     # You'll need to add this to .env
-    service_key = os.getenv('SUPABASE_SERVICE_KEY')
+    service_key = os.getenv("SUPABASE_SERVICE_KEY")
 
     if not url or not service_key:
         raise Exception("Missing Supabase URL or Service Key")
@@ -48,10 +49,10 @@ def test_connection():
 
         # Test connection by trying to access the auth user (this doesn't require any tables)
         # This is a simple way to verify the Supabase client is working
-        result = client.auth.get_session()
+        client.auth.get_session()
 
         # If we get here without an exception, the connection is working
         return True, "Supabase connection successful"
 
     except Exception as e:
-        return False, f"Connection failed: {str(e)}"
+        return False, f"Connection failed: {e!s}"

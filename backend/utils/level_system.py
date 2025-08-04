@@ -8,8 +8,9 @@ LEVEL_SYSTEM = [
     {"level": 7, "name": "Epic Gator", "min_xp": 1900, "max_xp": 2650},
     {"level": 8, "name": "Legendary Gator", "min_xp": 2650, "max_xp": 3550},
     {"level": 9, "name": "Mythic Gator", "min_xp": 3550, "max_xp": 4600},
-    {"level": 10, "name": "Gator God", "min_xp": 4600, "max_xp": float('inf')}
+    {"level": 10, "name": "Gator God", "min_xp": 4600, "max_xp": float("inf")},
 ]
+
 
 def get_level_info(total_xp):
     """Get level information based on total XP"""
@@ -23,7 +24,7 @@ def get_level_info(total_xp):
             else:
                 progress_percent = 100
                 xp_to_next = 0
-                
+
             return {
                 "level": level_data["level"],
                 "level_name": level_data["name"],
@@ -31,9 +32,9 @@ def get_level_info(total_xp):
                 "min_xp_for_level": level_data["min_xp"],
                 "max_xp_for_level": level_data["max_xp"],
                 "xp_to_next_level": xp_to_next,
-                "progress_percent": progress_percent
+                "progress_percent": progress_percent,
             }
-    
+
     return {
         "level": 1,
         "level_name": "Hatchling",
@@ -41,12 +42,13 @@ def get_level_info(total_xp):
         "min_xp_for_level": 0,
         "max_xp_for_level": 100,
         "xp_to_next_level": 100,
-        "progress_percent": 0
+        "progress_percent": 0,
     }
+
 
 XP_REWARDS = {
     "task_completion": 10,
     "pomodoro_completion": 5,
     "daily_streak": 20,
-    "achievement_unlock": 25
+    "achievement_unlock": 25,
 }

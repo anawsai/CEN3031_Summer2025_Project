@@ -1,12 +1,12 @@
 .page {
   min-height: 100vh;
-  background-color: #002040; 
+  background-color: #002040;
   padding: 24px;
 }
 
 .backButton {
   background: transparent;
-  color: #ff6f00; 
+  color: #ff6f00;
   border: 1px solid #ff6f00;
   border-radius: 8px;
   padding: 8px 16px;
@@ -24,7 +24,11 @@
 .formContainer {
   max-width: 400px;
   margin: 0 auto;
-  background: linear-gradient(135deg, rgba(0, 34, 68, 0.8), rgba(0, 51, 102, 0.6));
+  background: linear-gradient(
+    135deg,
+    rgba(0, 34, 68, 0.8),
+    rgba(0, 51, 102, 0.6)
+  );
   padding: 40px;
   border-radius: 24px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -46,7 +50,7 @@
 }
 
 .title {
-  color: #ff6f00; 
+  color: #ff6f00;
   margin-bottom: 32px;
   font-size: 28px;
   font-weight: 700;
@@ -74,7 +78,7 @@
 
 .progressFill {
   height: 100%;
-  background: linear-gradient(90deg, #ff6f00, #ff8f00); 
+  background: linear-gradient(90deg, #ff6f00, #ff8f00);
   border-radius: 5px;
   transition: width 0.3s ease;
   box-shadow: 0 0 10px rgba(255, 111, 0, 0.5);
@@ -112,7 +116,7 @@
 }
 
 .button {
-  background: linear-gradient(135deg, #ff6f00, #ff8f00); 
+  background: linear-gradient(135deg, #ff6f00, #ff8f00);
   color: white;
   padding: 14px 20px;
   border: none;
@@ -144,7 +148,7 @@
 }
 
 .loginLink {
-  color: #ff6f00; 
+  color: #ff6f00;
   text-decoration: underline;
   cursor: pointer;
   margin-bottom: 24px;
@@ -155,5 +159,5 @@
 }
 
 .loginLink:hover {
-  color: #ff8f00; 
+  color: #ff8f00;
 }

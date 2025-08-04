@@ -2,7 +2,12 @@ import React, { useState } from 'react';
 import { authAPI } from '../services/api';
 import styles from '../styles/signup.module.css';
 
-export function Signup({ setCurrentPage, setIsAuthenticated }) {
+export function Signup({
+  setCurrentPage,
+  setIsAuthenticated,
+  fetchXPData,
+  fetchTasks,
+}) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -11,7 +16,7 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     major: '',
     year: '',
     email: '',
-    password: ''
+    password: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -33,18 +38,16 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     setError('');
     try {
       const response = await authAPI.register(formData);
-      if (response.access_token) {
-        localStorage.setItem('access_token', response.access_token);
-        localStorage.setItem('user_data', JSON.stringify(response.user));
-      }
-      
-      setIsAuthenticated(true);
-      setCurrentPage('dashboard');
-    } 
-    catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
-    } 
-    finally {
+
+      // Don't store tokens - make them log in properly
+      // This ensures all data loads correctly on first login
+      alert('Registration successful! Please log in with your new account.');
+      setCurrentPage('home');
+    } catch (err) {
+      setError(
+        err.response?.data?.error || 'Registration failed. Please try again.'
+      );
+    } finally {
       setLoading(false);
     }
   };
@@ -53,7 +56,10 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
 
   return (
     <div className={styles.page}>
-      <button onClick={() => setCurrentPage('home')} className={styles.backButton}>
+      <button
+        onClick={() => setCurrentPage('home')}
+        className={styles.backButton}
+      >
         ← Back to Home
       </button>
 
@@ -71,29 +77,87 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
 
         {step === 1 && (
           <>
-            <input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First Name" className={styles.input} />
-            <input name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last Name" className={styles.input} />
-            <input name="username" value={formData.username} onChange={handleChange} placeholder="Username" className={styles.input} />
+            <input
+              name='firstName'
+              value={formData.firstName}
+              onChange={handleChange}
+              placeholder='First Name'
+              className={styles.input}
+            />
+            <input
+              name='lastName'
+              value={formData.lastName}
+              onChange={handleChange}
+              placeholder='Last Name'
+              className={styles.input}
+            />
+            <input
+              name='username'
+              value={formData.username}
+              onChange={handleChange}
+              placeholder='Username'
+              className={styles.input}
+            />
           </>
         )}
 
         {step === 2 && (
           <>
-            <input name="major" value={formData.major} onChange={handleChange} placeholder="Major" className={styles.input} />
-            <input name="year" value={formData.year} onChange={handleChange} placeholder="Year" className={styles.input} />
+            <input
+              name='major'
+              value={formData.major}
+              onChange={handleChange}
+              placeholder='Major'
+              className={styles.input}
+            />
+            <select
+              name='year'
+              value={formData.year}
+              onChange={handleChange}
+              className={styles.input}
+            >
+              <option value=''>Select Year</option>
+              <option value='Freshman'>Freshman</option>
+              <option value='Sophomore'>Sophomore</option>
+              <option value='Junior'>Junior</option>
+              <option value='Senior'>Senior</option>
+              <option value='Graduate'>Graduate</option>
+            </select>
           </>
         )}
 
         {step === 3 && (
           <>
-            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className={styles.input} />
-            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className={styles.input} />
+            <input
+              type='email'
+              name='email'
+              value={formData.email}
+              onChange={handleChange}
+              placeholder='Email'
+              className={styles.input}
+            />
+            <input
+              type='password'
+              name='password'
+              value={formData.password}
+              onChange={handleChange}
+              placeholder='Password'
+              className={styles.input}
+            />
           </>
         )}
 
         <div className={styles.buttonRow}>
-          {step > 1 && <button onClick={handleBack} className={styles.button}>Back</button>}
-          {step < 3 && <button onClick={handleNext} className={styles.button}>Next</button>}
+          {step > 1 && (
+            <button onClick={handleBack} className={styles.button}>
+              Back
+            </button>
+          )}
+          {step < 3 && (
+            <button onClick={handleNext} className={styles.button}>
+              Next
+            </button>
+          )}
           {step === 3 && (
             <button
               onClick={handleSubmit}
@@ -112,4 +176,3 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     </div>
   );
 }
-

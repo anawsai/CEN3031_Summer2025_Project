@@ -41,7 +41,7 @@ export const authAPI = {
   healthCheck: async () => {
     const response = await api.get('/health');
     return response.data;
-  }
+  },
 };
 
 // Pomodoro API functions
@@ -50,11 +50,11 @@ export const pomodoroAPI = {
     const response = await api.post('/pomodoro/start');
     return response.data;
   },
-  
+
   completeSession: async (sessionId) => {
     const response = await api.post(`/pomodoro/${sessionId}/complete`);
     return response.data;
-  }
+  },
 };
 
 // Analytics API functions
@@ -63,10 +63,10 @@ export const analyticsAPI = {
     const params = {};
     if (startDate) params.start_date = startDate;
     if (endDate) params.end_date = endDate;
-    
+
     const response = await api.get('/analytics/tasks', { params });
     return response.data;
-  }
+  },
 };
 
 // XP API functions
@@ -74,7 +74,19 @@ export const xpAPI = {
   getUserXP: async () => {
     const response = await api.get('/xp');
     return response.data;
-  }
+  },
 };
 
 export default api;
+
+// Boards API functions
+export const boardsAPI = {
+  getBoards: () => api.get('/boards'),
+  createBoard: (data) => api.post('/boards', data),
+  deleteBoard: (id) => api.delete(`/boards/${id}`),
+  getBoardTasks: (id) => api.get(`/boards/${id}/tasks`),
+  createBoardTask: (id, data) => api.post(`/boards/${id}/tasks`, data),
+  updateBoardTask: (boardId, taskId, data) =>
+    api.put(`/boards/${boardId}/tasks/${taskId}`, data),
+  inviteUser: (id, username) => api.post(`/boards/${id}/invite`, { username }),
+};
