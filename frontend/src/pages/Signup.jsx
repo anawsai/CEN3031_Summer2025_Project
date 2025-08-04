@@ -11,7 +11,7 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     major: '',
     year: '',
     email: '',
-    password: ''
+    password: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -37,14 +37,14 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
         localStorage.setItem('access_token', response.access_token);
         localStorage.setItem('user_data', JSON.stringify(response.user));
       }
-      
+
       setIsAuthenticated(true);
       setCurrentPage('dashboard');
-    } 
-    catch (err) {
-      setError(err.response?.data?.error || 'Registration failed. Please try again.');
-    } 
-    finally {
+    } catch (err) {
+      setError(
+        err.response?.data?.error || 'Registration failed. Please try again.'
+      );
+    } finally {
       setLoading(false);
     }
   };
@@ -53,7 +53,10 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
 
   return (
     <div className={styles.page}>
-      <button onClick={() => setCurrentPage('home')} className={styles.backButton}>
+      <button
+        onClick={() => setCurrentPage('home')}
+        className={styles.backButton}
+      >
         ← Back to Home
       </button>
 
@@ -71,29 +74,81 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
 
         {step === 1 && (
           <>
-            <input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="First Name" className={styles.input} />
-            <input name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Last Name" className={styles.input} />
-            <input name="username" value={formData.username} onChange={handleChange} placeholder="Username" className={styles.input} />
+            <input
+              name='firstName'
+              value={formData.firstName}
+              onChange={handleChange}
+              placeholder='First Name'
+              className={styles.input}
+            />
+            <input
+              name='lastName'
+              value={formData.lastName}
+              onChange={handleChange}
+              placeholder='Last Name'
+              className={styles.input}
+            />
+            <input
+              name='username'
+              value={formData.username}
+              onChange={handleChange}
+              placeholder='Username'
+              className={styles.input}
+            />
           </>
         )}
 
         {step === 2 && (
           <>
-            <input name="major" value={formData.major} onChange={handleChange} placeholder="Major" className={styles.input} />
-            <input name="year" value={formData.year} onChange={handleChange} placeholder="Year" className={styles.input} />
+            <input
+              name='major'
+              value={formData.major}
+              onChange={handleChange}
+              placeholder='Major'
+              className={styles.input}
+            />
+            <input
+              name='year'
+              value={formData.year}
+              onChange={handleChange}
+              placeholder='Year'
+              className={styles.input}
+            />
           </>
         )}
 
         {step === 3 && (
           <>
-            <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className={styles.input} />
-            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Password" className={styles.input} />
+            <input
+              type='email'
+              name='email'
+              value={formData.email}
+              onChange={handleChange}
+              placeholder='Email'
+              className={styles.input}
+            />
+            <input
+              type='password'
+              name='password'
+              value={formData.password}
+              onChange={handleChange}
+              placeholder='Password'
+              className={styles.input}
+            />
           </>
         )}
 
         <div className={styles.buttonRow}>
-          {step > 1 && <button onClick={handleBack} className={styles.button}>Back</button>}
-          {step < 3 && <button onClick={handleNext} className={styles.button}>Next</button>}
+          {step > 1 && (
+            <button onClick={handleBack} className={styles.button}>
+              Back
+            </button>
+          )}
+          {step < 3 && (
+            <button onClick={handleNext} className={styles.button}>
+              Next
+            </button>
+          )}
           {step === 3 && (
             <button
               onClick={handleSubmit}
@@ -112,4 +167,3 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     </div>
   );
 }
-

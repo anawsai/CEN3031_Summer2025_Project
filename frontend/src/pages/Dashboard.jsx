@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {LogOut} from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import { authAPI } from '../services/api';
 import styles from '../styles/dashboard.module.css';
 import PomodoroTimer from '../components/PomodoroTimer';
@@ -7,17 +7,24 @@ import StatsDisplay from '../components/StatsDisplay';
 import XPBar from '../components/XPBar';
 import ProfileButton from '../components/ProfileButton';
 
-export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenticated, xpData, refreshXP, setNotificationQueue, statsRefreshTrigger }) {
+export function Dashboard({
+  tasks,
+  setCurrentPage,
+  toggleComplete,
+  setIsAuthenticated,
+  xpData,
+  refreshXP,
+  setNotificationQueue,
+  statsRefreshTrigger,
+}) {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  
+
   const handleLogout = async () => {
     try {
       await authAPI.logout();
-    } 
-    catch (error) {
+    } catch (error) {
       console.error('Logout failed:', error);
-    } 
-    finally {
+    } finally {
       localStorage.removeItem('access_token');
       localStorage.removeItem('user_data');
       setIsAuthenticated(false);
@@ -27,64 +34,67 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
 
   return (
     <div className={styles.pageContainer}>
-  
       {isTimerRunning && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.7)',
-          zIndex: 998,
-          pointerEvents: 'auto'
-        }} />
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            zIndex: 998,
+            pointerEvents: 'auto',
+          }}
+        />
       )}
-      
+
       <XPBar xpData={xpData} refreshXP={refreshXP} />
-      
-      <div style={{ 
-        position: 'absolute', 
-        top: '20px', 
-        right: '20px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '12px',
-        alignItems: 'center'
-      }}>
-        <button onClick={handleLogout} className={styles.logoutIconButton} title="Logout">
+
+      <div
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '12px',
+          alignItems: 'center',
+        }}
+      >
+        <button
+          onClick={handleLogout}
+          className={styles.logoutIconButton}
+          title='Logout'
+        >
           <LogOut className={styles.logoutIcon} />
         </button>
-        
-        <ProfileButton 
-          setCurrentPage={setCurrentPage}
-        />
+
+        <ProfileButton setCurrentPage={setCurrentPage} />
       </div>
-  
+
       <h1 className={styles.dashboardTitle} style={{ marginTop: '80px' }}>
         Welcome to your Dashboard
       </h1>
-      <p className={styles.subtitle}>
-        What would you like to do today?
-      </p>
-  
+      <p className={styles.subtitle}>What would you like to do today?</p>
+
       <div className={styles.cardGrid}>
-  
-        <div 
-          onClick={() => !isTimerRunning && setCurrentPage('tasks')} 
+        <div
+          onClick={() => !isTimerRunning && setCurrentPage('tasks')}
           className={styles.card}
-          style={{ 
+          style={{
             pointerEvents: isTimerRunning ? 'none' : 'auto',
-            opacity: isTimerRunning ? 0.5 : 1
-          }}>
+            opacity: isTimerRunning ? 0.5 : 1,
+          }}
+        >
           <h3>My Tasks</h3>
-  
+
           {tasks.length === 0 && (
             <p style={{ color: '#777', fontSize: '14px' }}>
               No tasks yet. Click to add your first task!
             </p>
           )}
-  
+
           {tasks.length > 0 && (
             <div>
               {tasks.slice(0, 3).map((task, index) => (
@@ -94,11 +104,18 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
                 >
                   <div>
                     <strong>{task.title}</strong>
-                    <p style={{ margin: '4px 0', fontSize: '14px', color: '#777' }}>
-                      Due: {task.dueDate || 'N/A'} | Priority: {task.priority || 'N/A'}
+                    <p
+                      style={{
+                        margin: '4px 0',
+                        fontSize: '14px',
+                        color: '#777',
+                      }}
+                    >
+                      Due: {task.dueDate || 'N/A'} | Priority:{' '}
+                      {task.priority || 'N/A'}
                     </p>
                   </div>
-  
+
                   <div
                     onClick={(e) => {
                       e.stopPropagation();
@@ -111,7 +128,7 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
               ))}
             </div>
           )}
-  
+
           {tasks.length > 3 && (
             <p style={{ color: '#777', fontSize: '14px' }}>
               ...and {tasks.length - 3} more tasks
@@ -119,46 +136,46 @@ export function Dashboard({ tasks, setCurrentPage, toggleComplete, setIsAuthenti
           )}
         </div>
 
-        <div 
-          onClick={() => !isTimerRunning && setCurrentPage('sharedboards')} 
+        <div
+          onClick={() => !isTimerRunning && setCurrentPage('sharedboards')}
           className={styles.card}
-          style={{ 
+          style={{
             pointerEvents: isTimerRunning ? 'none' : 'auto',
             opacity: isTimerRunning ? 0.5 : 1,
-            cursor: 'pointer'
-          }}>
+            cursor: 'pointer',
+          }}
+        >
           <h3>Shared Boards</h3>
           <p style={{ color: '#777', fontSize: '14px' }}>
             Click to view and manage your shared task boards!
           </p>
         </div>
-  
-        <div 
+
+        <div
           className={styles.card}
-          style={{ 
+          style={{
             position: isTimerRunning ? 'relative' : 'static',
-            zIndex: isTimerRunning ? 999 : 'auto'
+            zIndex: isTimerRunning ? 999 : 'auto',
           }}
         >
           <h3>Pomodoro Timer</h3>
-          <PomodoroTimer 
-            refreshXP={refreshXP} 
+          <PomodoroTimer
+            refreshXP={refreshXP}
             setNotificationQueue={setNotificationQueue}
             onTimerStateChange={setIsTimerRunning}
           />
         </div>
-  
-        <div 
+
+        <div
           className={styles.card}
-          style={{ 
+          style={{
             pointerEvents: isTimerRunning ? 'none' : 'auto',
-            opacity: isTimerRunning ? 0.5 : 1
+            opacity: isTimerRunning ? 0.5 : 1,
           }}
         >
           <h3>Progress / Analytics</h3>
           <StatsDisplay refreshTrigger={statsRefreshTrigger} />
         </div>
-  
       </div>
     </div>
   );

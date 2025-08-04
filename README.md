@@ -1,52 +1,61 @@
 # SwampScheduler 🐊
+
 A Gator-themed productivity web app for UF students
 
 ## Quick Setup for Team
+
 ### Prerequisites
+
 Make sure you have installed on your computer:
+
 - Node.js: https://nodejs.org/en
 - Python: https://www.python.org/
 
 ### Backend Setup
 
 1. **Clone and navigate**
-  ```sh
-  git clone https://github.com/yourusername/swampscheduler.git
-  cd swampscheduler/backend
-  ```
+
+```sh
+git clone https://github.com/yourusername/swampscheduler.git
+cd swampscheduler/backend
+```
 
 2. **Project Setup**
-  ```sh
-  # Set up the virtual environment
-  python -m venv swamp_env
 
-  # On Mac/Linux:
-  source swamp_env/bin/activate
+```sh
+# Set up the virtual environment
+python -m venv swamp_env
 
-  # On Windows Command Prompt:
-  swamp_env\Scripts\activate
+# On Mac/Linux:
+source swamp_env/bin/activate
 
-  # On Windows PowerShell:
-  swamp_env\Scripts\Activate.ps1
+# On Windows Command Prompt:
+swamp_env\Scripts\activate
 
-  # Install dependencies
-  pip install -r requirements.txt
-  ```
+# On Windows PowerShell:
+swamp_env\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -r requirements.txt
+```
 
 3. **Environment variables**
-  ```sh
-  # Copy .env.example template to .env
-  cp .env.example .env
-  ```
-Now edit ```.env``` with our Supabase credentials (check team chat for keys).
+
+```sh
+# Copy .env.example template to .env
+cp .env.example .env
+```
+
+Now edit `.env` with our Supabase credentials (check team chat for keys).
 
 4. **Run the server**
-  ```sh
-  python app.py
-  ```
+
+```sh
+python app.py
+```
 
 5. **Test it works**
-   Go to ```http://localhost:5000/api/health``` - you should see a success message. (I will put it in one of our disc chats)
+   Go to `http://localhost:5000/api/health` - you should see a success message. (I will put it in one of our disc chats)
 
 ### Frontend Setup
 
@@ -54,23 +63,25 @@ Now edit ```.env``` with our Supabase credentials (check team chat for keys).
    ```sh
    cd swampscheduler/frontend
    ```
-2. ***Install Dependencies***
+2. **_Install Dependencies_**
    ```sh
    npm install
    npm install lucide-react
    ```
-3. ***Run the development server***
+3. **_Run the development server_**
    ```sh
    npm start
    ```
-4. ***Test it works***
-   Go to ```http://localhost:3000``` - you should see the SwampScheduler homepage. 
+4. **_Test it works_**
+   Go to `http://localhost:3000` - you should see the SwampScheduler homepage.
 
 ## Current Status
+
 - ✅ Flask backend running
 - ✅ Supabase connected
 - 🔄 Working on auth and task endpoints
 
 ## Tech Stack
+
 - **Backend:** Flask + Supabase
 - **Frontend:** React (coming soon)

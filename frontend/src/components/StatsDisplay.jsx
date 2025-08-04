@@ -27,20 +27,22 @@ const StatsDisplay = ({ refreshTrigger }) => {
   }
 
   return (
-    <div style={{ 
-      padding: '20px', 
-      backgroundColor: '#333333', 
-      borderRadius: '8px',
-      marginBottom: '20px',
-      textAlign: 'center'
-    }}>
-      <h3 style={{ margin: '0 0 10px 0', color: '#ffffff' }}>Today's Progress</h3>
+    <div
+      style={{
+        padding: '20px',
+        backgroundColor: '#333333',
+        borderRadius: '8px',
+        marginBottom: '20px',
+        textAlign: 'center',
+      }}
+    >
+      <h3 style={{ margin: '0 0 10px 0', color: '#ffffff' }}>
+        Today's Progress
+      </h3>
       <div style={{ fontSize: '48px', fontWeight: 'bold', color: '#4CAF50' }}>
         {todayCount}
       </div>
-      <div style={{ fontSize: '16px', color: '#cccccc' }}>
-        tasks completed
-      </div>
+      <div style={{ fontSize: '16px', color: '#cccccc' }}>tasks completed</div>
     </div>
   );
 };

@@ -8,7 +8,7 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
     title: task.title,
     description: task.description || '',
     priority: task.priority,
-    due_date: task.due_date || ''
+    due_date: task.due_date || '',
   });
 
   const handleEdit = () => {
@@ -25,17 +25,21 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
       title: task.title,
       description: task.description || '',
       priority: task.priority,
-      due_date: task.due_date || ''
+      due_date: task.due_date || '',
     });
     setIsEditing(false);
   };
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'High': return '#ff4444';
-      case 'Medium': return '#ff9800';
-      case 'Low': return '#4caf50';
-      default: return '#999';
+      case 'High':
+        return '#ff4444';
+      case 'Medium':
+        return '#ff9800';
+      case 'Low':
+        return '#4caf50';
+      default:
+        return '#999';
     }
   };
 
@@ -54,7 +58,7 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
   };
 
   return (
-    <div 
+    <div
       className={`${styles.taskCard} ${isOverdue(task.due_date) ? styles.overdue : ''}`}
       draggable={!isEditing}
       onDragStart={onDragStart}
@@ -63,40 +67,48 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
       {isEditing ? (
         <div className={styles.editForm}>
           <input
-            type="text"
+            type='text'
             value={editData.title}
-            onChange={(e) => setEditData({ ...editData, title: e.target.value })}
+            onChange={(e) =>
+              setEditData({ ...editData, title: e.target.value })
+            }
             className={styles.editInput}
-            placeholder="Task title"
+            placeholder='Task title'
           />
-          
+
           <textarea
             value={editData.description}
-            onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+            onChange={(e) =>
+              setEditData({ ...editData, description: e.target.value })
+            }
             className={styles.editTextarea}
-            placeholder="Description"
-            rows="2"
+            placeholder='Description'
+            rows='2'
           />
-          
+
           <div className={styles.editRow}>
             <select
               value={editData.priority}
-              onChange={(e) => setEditData({ ...editData, priority: e.target.value })}
+              onChange={(e) =>
+                setEditData({ ...editData, priority: e.target.value })
+              }
               className={styles.editSelect}
             >
-              <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
-              <option value="High">High</option>
+              <option value='Low'>Low</option>
+              <option value='Medium'>Medium</option>
+              <option value='High'>High</option>
             </select>
-            
+
             <input
-              type="date"
+              type='date'
               value={editData.due_date}
-              onChange={(e) => setEditData({ ...editData, due_date: e.target.value })}
+              onChange={(e) =>
+                setEditData({ ...editData, due_date: e.target.value })
+              }
               className={styles.editDate}
             />
           </div>
-          
+
           <div className={styles.editActions}>
             <button onClick={handleCancel} className={styles.cancelButton}>
               Cancel
@@ -110,7 +122,7 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
         <>
           <div className={styles.taskHeader}>
             <h4 className={styles.taskTitle}>{task.title}</h4>
-            <div 
+            <div
               className={styles.priorityBadge}
               style={{ backgroundColor: getPriorityColor(task.priority) }}
             >
@@ -125,12 +137,14 @@ const TaskCard = ({ task, onUpdate, onDragStart }) => {
 
           <div className={styles.taskMeta}>
             {task.due_date && (
-              <div className={`${styles.metaItem} ${isOverdue(task.due_date) ? styles.overdueText : ''}`}>
+              <div
+                className={`${styles.metaItem} ${isOverdue(task.due_date) ? styles.overdueText : ''}`}
+              >
                 <Calendar size={14} />
                 <span>{formatDate(task.due_date)}</span>
               </div>
             )}
-            
+
             {task.assigned_to_user && (
               <div className={styles.metaItem}>
                 <User size={14} />

@@ -22,7 +22,7 @@ const ProfileButton = ({ setCurrentPage }) => {
         justifyContent: 'center',
         boxShadow: '0 4px 12px rgba(255, 111, 0, 0.3)',
         transition: 'all 0.2s ease',
-        fontSize: '20px'
+        fontSize: '20px',
       }}
       onMouseOver={(e) => {
         e.target.style.transform = 'scale(1.05)';
@@ -32,7 +32,7 @@ const ProfileButton = ({ setCurrentPage }) => {
         e.target.style.transform = 'scale(1)';
         e.target.style.boxShadow = '0 4px 12px rgba(255, 111, 0, 0.3)';
       }}
-      title="View Profile"
+      title='View Profile'
     >
       <User size={24} />
     </button>

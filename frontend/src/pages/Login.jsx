@@ -23,18 +23,19 @@ export function Login({ setCurrentPage, setIsAuthenticated, setTasks }) {
       setTasks([]);
       setIsAuthenticated(true);
       setCurrentPage('dashboard');
-    } 
-    catch (err) {
+    } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');
-    } 
-    finally {
+    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div className={styles.page}>
-      <button onClick={() => setCurrentPage('home')} className={styles.backButton}>
+      <button
+        onClick={() => setCurrentPage('home')}
+        className={styles.backButton}
+      >
         ← Back to Home
       </button>
 
@@ -44,24 +45,27 @@ export function Login({ setCurrentPage, setIsAuthenticated, setTasks }) {
         {error && <div className={styles.errorBox}>{error}</div>}
 
         <input
-          type="email"
-          name="email"
+          type='email'
+          name='email'
           value={formData.email}
           onChange={handleChange}
-          placeholder="Email"
+          placeholder='Email'
           className={styles.input}
         />
 
         <input
-          type="password"
-          name="password"
+          type='password'
+          name='password'
           value={formData.password}
           onChange={handleChange}
-          placeholder="Password"
+          placeholder='Password'
           className={styles.input}
         />
 
-        <p onClick={() => setCurrentPage('signup')} className={styles.signupLink}>
+        <p
+          onClick={() => setCurrentPage('signup')}
+          className={styles.signupLink}
+        >
           Need an account? Sign up
         </p>
 

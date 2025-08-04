@@ -22,10 +22,10 @@ const Profile = ({ setCurrentPage, xpData }) => {
       setLoading(true);
       const response = await api.get('/achievements', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-        }
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`,
+        },
       });
-      
+
       if (response.data && response.data.achievements) {
         setAchievements(response.data.achievements);
       }
@@ -42,17 +42,16 @@ const Profile = ({ setCurrentPage, xpData }) => {
   };
 
   const getUnlockedAchievements = () => {
-    return achievements.filter(achievement => achievement.unlocked);
+    return achievements.filter((achievement) => achievement.unlocked);
   };
 
   const getLockedAchievements = () => {
-    return achievements.filter(achievement => !achievement.unlocked);
+    return achievements.filter((achievement) => !achievement.unlocked);
   };
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.innerContainer}>
-        
         {/* Back Button */}
         <button
           onClick={() => setCurrentPage('dashboard')}
@@ -66,7 +65,7 @@ const Profile = ({ setCurrentPage, xpData }) => {
         <div className={styles.profileCard}>
           <div className={styles.userHeader}>
             <div className={styles.avatar}>
-              <User size={40} color="white" />
+              <User size={40} color='white' />
             </div>
 
             <div className={styles.userInfo}>
@@ -74,9 +73,7 @@ const Profile = ({ setCurrentPage, xpData }) => {
               <p className={styles.fullName}>
                 {userData?.first_name} {userData?.last_name}
               </p>
-              <p className={styles.email}>
-                {userData?.email}
-              </p>
+              <p className={styles.email}>{userData?.email}</p>
             </div>
           </div>
 
@@ -88,13 +85,11 @@ const Profile = ({ setCurrentPage, xpData }) => {
                   <Star size={20} style={{ color: '#ff6f00' }} />
                   Level {xpData.level}: {xpData.level_name}
                 </h3>
-                <div className={styles.xpAmount}>
-                  {xpData.total_xp} XP
-                </div>
+                <div className={styles.xpAmount}>{xpData.total_xp} XP</div>
               </div>
 
               <div className={styles.xpBarContainer}>
-                <div 
+                <div
                   className={styles.xpBar}
                   style={{ width: `${xpData.progress_percent}%` }}
                 />
@@ -104,10 +99,9 @@ const Profile = ({ setCurrentPage, xpData }) => {
               </div>
 
               <div className={styles.xpFooter}>
-                {xpData.xp_to_next_level > 0 
+                {xpData.xp_to_next_level > 0
                   ? `${xpData.xp_to_next_level} XP to next level`
-                  : 'Maximum level reached!'
-                }
+                  : 'Maximum level reached!'}
               </div>
             </div>
           )}
@@ -117,19 +111,16 @@ const Profile = ({ setCurrentPage, xpData }) => {
         <div className={styles.achievementsCard}>
           <h2 className={styles.achievementsTitle}>
             <Trophy size={28} />
-            Achievements ({getUnlockedAchievements().length}/{achievements.length})
+            Achievements ({getUnlockedAchievements().length}/
+            {achievements.length})
           </h2>
 
           {loading && (
-            <div className={styles.loading}>
-              Loading achievements...
-            </div>
+            <div className={styles.loading}>Loading achievements...</div>
           )}
 
           {!loading && achievements.length === 0 && (
-            <div className={styles.noData}>
-              No achievements data available
-            </div>
+            <div className={styles.noData}>No achievements data available</div>
           )}
 
           {!loading && achievements.length > 0 && (
@@ -137,13 +128,18 @@ const Profile = ({ setCurrentPage, xpData }) => {
               {/* Earned Achievements */}
               {getUnlockedAchievements().length > 0 && (
                 <div className={styles.earnedSection}>
-                  <h3 className={`${styles.sectionTitle} ${styles.earnedTitle}`}>
+                  <h3
+                    className={`${styles.sectionTitle} ${styles.earnedTitle}`}
+                  >
                     <Award size={20} />
                     Earned Achievements
                   </h3>
                   <div className={styles.achievementsGrid}>
-                    {getUnlockedAchievements().map(achievement => (
-                      <div key={achievement.id} className={`${styles.achievementItem} ${styles.achievementEarned}`}>
+                    {getUnlockedAchievements().map((achievement) => (
+                      <div
+                        key={achievement.id}
+                        className={`${styles.achievementItem} ${styles.achievementEarned}`}
+                      >
                         <div className={styles.achievementIcon}>
                           {achievement.icon}
                         </div>
@@ -155,7 +151,10 @@ const Profile = ({ setCurrentPage, xpData }) => {
                             {achievement.description}
                           </div>
                           <div className={styles.achievementEarnedInfo}>
-                            {achievement.earned_at ? `Earned ${formatDate(achievement.earned_at)} • ` : ''}+{achievement.xp_reward} XP
+                            {achievement.earned_at
+                              ? `Earned ${formatDate(achievement.earned_at)} • `
+                              : ''}
+                            +{achievement.xp_reward} XP
                           </div>
                         </div>
                       </div>
@@ -167,13 +166,20 @@ const Profile = ({ setCurrentPage, xpData }) => {
               {/* Locked Achievements */}
               {getLockedAchievements().length > 0 && (
                 <div>
-                  <h3 className={`${styles.sectionTitle} ${styles.lockedTitle}`}>
+                  <h3
+                    className={`${styles.sectionTitle} ${styles.lockedTitle}`}
+                  >
                     Locked Achievements
                   </h3>
                   <div className={styles.achievementsGrid}>
-                    {getLockedAchievements().map(achievement => (
-                      <div key={achievement.id} className={`${styles.achievementItem} ${styles.achievementLocked}`}>
-                        <div className={`${styles.achievementIcon} ${styles.achievementIconLocked}`}>
+                    {getLockedAchievements().map((achievement) => (
+                      <div
+                        key={achievement.id}
+                        className={`${styles.achievementItem} ${styles.achievementLocked}`}
+                      >
+                        <div
+                          className={`${styles.achievementIcon} ${styles.achievementIconLocked}`}
+                        >
                           {achievement.icon}
                         </div>
                         <div className={styles.achievementContent}>

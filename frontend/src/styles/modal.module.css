@@ -1,144 +1,148 @@
 .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-    backdrop-filter: blur(5px);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(5px);
 }
-  
+
 .modal {
-    background: linear-gradient(135deg, rgba(0, 34, 68, 0.9), rgba(0, 51, 102, 0.8));
-    padding: 40px;
-    border-radius: 24px;
-    max-width: 600px;
-    width: 90%;
-    position: relative;
-    border: 1px solid rgba(255, 111, 0, 0.3);
-    backdrop-filter: blur(20px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-    overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 34, 68, 0.9),
+    rgba(0, 51, 102, 0.8)
+  );
+  padding: 40px;
+  border-radius: 24px;
+  max-width: 600px;
+  width: 90%;
+  position: relative;
+  border: 1px solid rgba(255, 111, 0, 0.3);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
 }
 
 .modal::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #ff6f00, #ff8f00, #ff6f00);
-    border-radius: 24px 24px 0 0;
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6f00, #ff8f00, #ff6f00);
+  border-radius: 24px 24px 0 0;
 }
 
 .closeButton {
-    position: absolute;
-    top: 16px;
-    right: 20px;
-    background: none;
-    border: none;
-    font-size: 24px;
-    cursor: pointer;
-    color: #ff6f00;
-    transition: color 0.2s ease;
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #ff6f00;
+  transition: color 0.2s ease;
 }
 
 .closeButton:hover {
-    color: #ff8f00;
+  color: #ff8f00;
 }
 
 .input {
-    width: 100%;
-    padding: 14px;
-    margin-bottom: 16px;
-    border-radius: 8px;
-    border: 1px solid #003366;
-    font-size: 16px;
-    background-color: rgba(255, 255, 255, 0.05);
-    color: #ffffff;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
+  width: 100%;
+  padding: 14px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1px solid #003366;
+  font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .input::placeholder {
-    color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .input:focus {
-    outline: none;
-    border-color: #ff6f00;
-    box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.2);
-    background-color: rgba(255, 255, 255, 0.08);
+  outline: none;
+  border-color: #ff6f00;
+  box-shadow: 0 0 0 2px rgba(255, 111, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .textarea {
-    resize: vertical;
-    min-height: 80px;
-    font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
 }
 
 .formRow {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 16px;
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .formRow .input {
-    margin-bottom: 0;
+  margin-bottom: 0;
 }
 
 .buttonRow {
-    display: flex;
-    gap: 12px;
-    margin-top: 24px;
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
 }
 
 .cancelButton {
-    background: transparent;
-    color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    flex: 1;
+  background: transparent;
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  flex: 1;
 }
 
 .cancelButton:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
+  background-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
 }
 
 .submitButton {
-    background: linear-gradient(135deg, #ff6f00, #ff8f00);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s ease;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(255, 111, 0, 0.3);
-    flex: 1;
+  background: linear-gradient(135deg, #ff6f00, #ff8f00);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(255, 111, 0, 0.3);
+  flex: 1;
 }
 
 .submitButton:hover {
-    background: linear-gradient(135deg, #ff8f00, #ffab00);
-    transform: translateY(-1px);
-    box-shadow: 0 6px 16px rgba(255, 111, 0, 0.4);
+  background: linear-gradient(135deg, #ff8f00, #ffab00);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(255, 111, 0, 0.4);
 }
 
 .submitButton:disabled {
-    background: #666;
-    cursor: not-allowed;
-    transform: none;
-    box-shadow: none;
+  background: #666;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }

@@ -4,20 +4,20 @@ import styles from '../../styles/modal.module.css';
 const CreateBoardModal = ({ onClose, onCreate }) => {
   const [formData, setFormData] = useState({
     name: '',
-    description: ''
+    description: '',
   });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!formData.name.trim()) {
       alert('Board name is required');
       return;
@@ -39,41 +39,47 @@ const CreateBoardModal = ({ onClose, onCreate }) => {
         <button onClick={onClose} className={styles.closeButton}>
           ✕
         </button>
-        
-        <h2 style={{ color: '#ff6f00', marginBottom: '24px', textAlign: 'center' }}>
+
+        <h2
+          style={{
+            color: '#ff6f00',
+            marginBottom: '24px',
+            textAlign: 'center',
+          }}
+        >
           Create New Board
         </h2>
 
         <form onSubmit={handleSubmit}>
           <input
-            type="text"
-            name="name"
+            type='text'
+            name='name'
             value={formData.name}
             onChange={handleChange}
-            placeholder="Board Name"
+            placeholder='Board Name'
             className={styles.input}
             required
           />
 
           <textarea
-            name="description"
+            name='description'
             value={formData.description}
             onChange={handleChange}
-            placeholder="Description (optional)"
+            placeholder='Description (optional)'
             className={`${styles.input} ${styles.textarea}`}
-            rows="3"
+            rows='3'
           />
 
           <div className={styles.buttonRow}>
-            <button 
-              type="button" 
+            <button
+              type='button'
               onClick={onClose}
               className={styles.cancelButton}
             >
               Cancel
             </button>
-            <button 
-              type="submit" 
+            <button
+              type='submit'
               className={styles.submitButton}
               disabled={loading}
             >

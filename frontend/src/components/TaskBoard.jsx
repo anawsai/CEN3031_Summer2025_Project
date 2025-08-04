@@ -15,6 +15,7 @@ const TaskBoard = ({ board, onBack }) => {
 
   useEffect(() => {
     fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [board.id]);
 
   const fetchTasks = async () => {
@@ -48,7 +49,10 @@ const TaskBoard = ({ board, onBack }) => {
       alert(`User ${username} invited successfully!`);
     } catch (error) {
       console.error('Failed to invite user:', error);
-      alert(error.response?.data?.error || 'Failed to invite user. Please try again.');
+      alert(
+        error.response?.data?.error ||
+          'Failed to invite user. Please try again.'
+      );
     }
   };
 
@@ -79,13 +83,13 @@ const TaskBoard = ({ board, onBack }) => {
   };
 
   const getTasksByStatus = (status) => {
-    return tasks.filter(task => task.status === status);
+    return tasks.filter((task) => task.status === status);
   };
 
   const columns = [
     { id: 'todo', title: 'To Do', color: '#ff6f00' },
     { id: 'in_progress', title: 'In Progress', color: '#2196F3' },
-    { id: 'done', title: 'Done', color: '#4CAF50' }
+    { id: 'done', title: 'Done', color: '#4CAF50' },
   ];
 
   return (
@@ -101,18 +105,18 @@ const TaskBoard = ({ board, onBack }) => {
             <p className={styles.description}>{board.description}</p>
           </div>
         </div>
-        
+
         <div className={styles.headerActions}>
-          <button 
+          <button
             onClick={() => setShowCreateTask(true)}
             className={styles.actionButton}
           >
             <Plus size={16} />
             Add Task
           </button>
-          
+
           {board.role === 'admin' && (
-            <button 
+            <button
               onClick={() => setShowInviteUser(true)}
               className={styles.actionButton}
             >
@@ -127,22 +131,25 @@ const TaskBoard = ({ board, onBack }) => {
         <div className={styles.loading}>Loading tasks...</div>
       ) : (
         <div className={styles.board}>
-          {columns.map(column => (
-            <div 
-              key={column.id} 
+          {columns.map((column) => (
+            <div
+              key={column.id}
               className={styles.column}
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, column.id)}
             >
-              <div className={styles.columnHeader} style={{ borderTopColor: column.color }}>
+              <div
+                className={styles.columnHeader}
+                style={{ borderTopColor: column.color }}
+              >
                 <h3>{column.title}</h3>
                 <span className={styles.taskCount}>
                   {getTasksByStatus(column.id).length}
                 </span>
               </div>
-              
+
               <div className={styles.taskList}>
-                {getTasksByStatus(column.id).map(task => (
+                {getTasksByStatus(column.id).map((task) => (
                   <TaskCard
                     key={task.id}
                     task={task}
@@ -150,7 +157,7 @@ const TaskBoard = ({ board, onBack }) => {
                     onDragStart={(e) => handleDragStart(e, task)}
                   />
                 ))}
-                
+
                 {getTasksByStatus(column.id).length === 0 && (
                   <div className={styles.emptyColumn}>
                     <p>No tasks yet</p>

@@ -32,7 +32,7 @@ export function SharedBoards({ setCurrentPage }) {
   const handleCreateBoard = async (boardData) => {
     try {
       await boardsAPI.createBoard(boardData);
-      await fetchBoards(); 
+      await fetchBoards();
       setShowCreateModal(false);
     } catch (error) {
       console.error('Failed to create board:', error);
@@ -48,19 +48,25 @@ export function SharedBoards({ setCurrentPage }) {
   const handleBackToBoards = () => {
     setShowBoardView(false);
     setSelectedBoard(null);
-    fetchBoards(); 
+    fetchBoards();
   };
 
   const handleDeleteBoard = async (e, boardId, boardName) => {
     e.stopPropagation(); // Prevent board click
-    
-    if (window.confirm(`Are you sure you want to delete "${boardName}"? This action cannot be undone.`)) {
+
+    if (
+      window.confirm(
+        `Are you sure you want to delete "${boardName}"? This action cannot be undone.`
+      )
+    ) {
       try {
         await boardsAPI.deleteBoard(boardId);
         await fetchBoards(); // Refresh the board list
       } catch (error) {
         console.error('Failed to delete board:', error);
-        alert('Failed to delete board. You may not have permission to delete this board.');
+        alert(
+          'Failed to delete board. You may not have permission to delete this board.'
+        );
       }
     }
   };
@@ -70,18 +76,12 @@ export function SharedBoards({ setCurrentPage }) {
   };
 
   if (showBoardView && selectedBoard) {
-    return (
-      <TaskBoard 
-        board={selectedBoard} 
-        onBack={handleBackToBoards}
-      />
-    );
+    return <TaskBoard board={selectedBoard} onBack={handleBackToBoards} />;
   }
 
   return (
     <div className={styles.pageContainer}>
       <div className={styles.innerContainer}>
-        
         <div className={styles.headerRow}>
           <h1 className={styles.headerTitle}>Shared Boards</h1>
           <button
@@ -95,11 +95,12 @@ export function SharedBoards({ setCurrentPage }) {
 
         <div className={styles.subHeader}>
           <p className={styles.description}>
-            Collaborate with your team on shared task boards. Create new boards or join existing ones to work together on projects.
+            Collaborate with your team on shared task boards. Create new boards
+            or join existing ones to work together on projects.
           </p>
-          
+
           {!loading && boards.length > 0 && (
-            <button 
+            <button
               onClick={() => setShowCreateModal(true)}
               className={styles.createButton}
             >
@@ -122,8 +123,11 @@ export function SharedBoards({ setCurrentPage }) {
               <Users size={64} />
             </div>
             <h3>No shared boards yet</h3>
-            <p>Create your first board to start collaborating with your team, or wait to be invited to existing boards.</p>
-            <button 
+            <p>
+              Create your first board to start collaborating with your team, or
+              wait to be invited to existing boards.
+            </p>
+            <button
               onClick={() => setShowCreateModal(true)}
               className={styles.emptyCreateButton}
             >
@@ -136,12 +140,11 @@ export function SharedBoards({ setCurrentPage }) {
         {!loading && boards.length > 0 && (
           <div className={styles.boardsGrid}>
             {boards.map((board) => (
-              <div 
-                key={board.id} 
+              <div
+                key={board.id}
                 className={styles.boardCard}
                 onClick={() => handleBoardClick(board)}
               >
-                
                 <div className={styles.boardHeader}>
                   <div className={styles.boardInfo}>
                     <h3 className={styles.boardName}>{board.name}</h3>
@@ -162,16 +165,14 @@ export function SharedBoards({ setCurrentPage }) {
                   <button
                     className={styles.deleteButton}
                     onClick={(e) => handleDeleteBoard(e, board.id, board.name)}
-                    title="Delete board"
+                    title='Delete board'
                   >
                     <Trash2 size={16} />
                   </button>
                 </div>
 
                 {board.description && (
-                  <p className={styles.boardDescription}>
-                    {board.description}
-                  </p>
+                  <p className={styles.boardDescription}>{board.description}</p>
                 )}
 
                 <div className={styles.boardMeta}>
@@ -192,7 +193,7 @@ export function SharedBoards({ setCurrentPage }) {
         )}
 
         {showCreateModal && (
-          <CreateBoardModal 
+          <CreateBoardModal
             onClose={() => setShowCreateModal(false)}
             onCreate={handleCreateBoard}
           />
