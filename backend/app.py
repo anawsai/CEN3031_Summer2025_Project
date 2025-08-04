@@ -1,10 +1,11 @@
 import os
 import uuid
 from datetime import date, datetime, timedelta
+from pathlib import Path
 
 from config import config
 from dotenv import load_dotenv
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 from flask_jwt_extended import (
     JWTManager,
@@ -2123,6 +2124,24 @@ def internal_error(error):
     return jsonify(
         {"error": "internal server error", "message": "something went wrong"}
     ), 500
+
+
+# Serve React app in production
+if os.getenv("FLASK_ENV") == "production":
+
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def serve(path):
+        # Check if path is an API route
+        if path.startswith("api/"):
+            return jsonify({"error": "API route not found"}), 404
+
+        # Serve React build files
+        build_path = Path(__file__).parent / ".." / "frontend" / "build"
+        build_path_str = str(build_path.resolve())
+        if path != "" and (build_path / path).exists():
+            return send_from_directory(build_path_str, path)
+        return send_from_directory(build_path_str, "index.html")
 
 
 if __name__ == "__main__":

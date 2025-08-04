@@ -27,7 +27,12 @@
       ];
 
       perSystem =
-        { config, pkgs, ... }:
+        {
+          config,
+          pkgs,
+          system,
+          ...
+        }:
         {
           treefmt = {
             projectRootFile = "flake.nix";
@@ -146,6 +151,28 @@
               install-deps.exec = ''
                 cd frontend && npm install
               '';
+
+              backend-prod.exec = ''
+                cd backend
+                export FLASK_ENV=production
+                export FLASK_DEBUG=0
+                gunicorn --bind 0.0.0.0:5000 --workers 4 --access-logfile - --error-logfile - wsgi:app
+              '';
+
+              frontend-prod.exec = ''
+                cd frontend
+                npm run build
+                echo "Frontend build complete. Serving static files via backend in production."
+              '';
+
+              # prod serve
+              serve-prod.exec = ''
+                cd backend
+                export FLASK_ENV=production
+                export FLASK_DEBUG=0
+                echo "Production mode: Frontend will be served by Flask at /"
+                gunicorn --bind 0.0.0.0:5000 --workers 4 --access-logfile - --error-logfile - wsgi:app
+              '';
             };
 
             enterShell = ''
@@ -160,6 +187,8 @@
               echo "Available commands:"
               echo "  backend   - Start Flask development server"
               echo "  frontend  - Start React development server"
+              echo "  backend-prod  - Start production server"
+              echo "  frontend-prod  - Build production frontend for backend"
               echo "  nix fmt   - Format and Lint ALL code"
               echo ""
               echo "Quick start:"
