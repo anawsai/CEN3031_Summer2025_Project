@@ -23,7 +23,7 @@ from utils.database import (
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="../frontend/build", static_url_path="/")
 
 config_name = os.getenv("FLASK_ENV", "development")
 app.config.from_object(config[config_name])
@@ -2115,6 +2115,8 @@ def forbidden(error):
 @app.errorhandler(404)
 def not_found(error):
     """handle not found errors"""
+    if os.getenv("FLASK_ENV") == "production" and not request.path.startswith("/api/"):
+        return app.send_static_file("index.html")
     return jsonify({"error": "not found", "message": "resource not found"}), 404
 
 
@@ -2150,3 +2152,14 @@ if __name__ == "__main__":
         host="0.0.0.0",
         port=int(os.getenv("PORT", 5000)),
     )
+
+
+# Serve React app in production
+@app.route("/")
+def index():
+    if os.getenv("FLASK_ENV") == "production":
+        return app.send_static_file("index.html")
+    return jsonify({"message": "SwampScheduler API"}), 200
+
+
+# Catch all routes for React Router

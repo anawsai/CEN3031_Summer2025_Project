@@ -79,7 +79,7 @@ export function TaskList({ tasks, toggleComplete, onEditTask, onDeleteTask }) {
 
             {!task.completed && (
               <div
-                onClick={() => toggleComplete(index)}
+                onClick={() => toggleComplete(task.id || task)}
                 className={`${styles.toggleComplete} ${task.completed ? styles.checked : ''}`}
                 title={task.completed ? 'Completed' : 'Mark as Done'}
               />

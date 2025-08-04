@@ -1,5 +1,8 @@
 import os
 
+# Set production environment before importing app
+os.environ["FLASK_ENV"] = "production"
+
 from app import app
 
 if __name__ == "__main__":
