@@ -77,7 +77,7 @@ const GameNotification = ({ notification, onClose }) => {
                     marginBottom: '4px',
                   }}
                 >
-                  <Star size={14} color="#FFD700" /> ACHIEVEMENT UNLOCKED!
+                  <Star size={14} color='#FFD700' /> ACHIEVEMENT UNLOCKED!
                 </div>
                 <h3
                   style={{
@@ -140,7 +140,7 @@ const GameNotification = ({ notification, onClose }) => {
                   marginBottom: '8px',
                 }}
               >
-                <Rocket size={14} color="#ffffffff" /> LEVEL UP!
+                <Rocket size={14} color='#ffffffff' /> LEVEL UP!
               </div>
               <div
                 style={{
@@ -188,7 +188,7 @@ const GameNotification = ({ notification, onClose }) => {
                   marginBottom: '10px',
                 }}
               >
-                <Sparkles size={14} color="#FFD700" /> XP GAINED!
+                <Sparkles size={14} color='#FFD700' /> XP GAINED!
               </div>
               <div
                 style={{

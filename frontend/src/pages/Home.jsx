@@ -10,7 +10,7 @@ export function Home({ setCurrentPage }) {
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.logoSection}>
-            <img alt='SwampScheduler Logo' className={styles.logoImage} />
+            <span style={{ fontSize: '2rem', marginRight: '10px' }}>🐊</span>
             <h1 className={styles.logoText}>SwampScheduler</h1>
           </div>
 

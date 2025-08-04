@@ -181,8 +181,8 @@ export function Dashboard({
                             color: '#777',
                           }}
                         >
-                          Due: {task.dueDate || 'N/A'} | Priority:{' '}
-                          {task.priority || 'N/A'}
+                          Due: {task.due_date || task.dueDate || 'N/A'} |
+                          Priority: {task.priority || 'N/A'}
                         </p>
                       </div>
 
