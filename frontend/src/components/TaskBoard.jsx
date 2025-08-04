@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, UserPlus } from 'lucide-react';
+import { ArrowLeft, Plus, UserPlus, Users } from 'lucide-react';
 import { boardsAPI } from '../services/api';
 import CreateTaskModal from './modals/CreateTaskModal';
 import InviteUserModal from './modals/InviteUserModal';
+import ManageMembersModal from './modals/ManageMembersModal';
 import TaskCard from './TaskCard';
 import styles from '../styles/taskboard.module.css';
 
@@ -11,23 +12,44 @@ const TaskBoard = ({ board, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [showCreateTask, setShowCreateTask] = useState(false);
   const [showInviteUser, setShowInviteUser] = useState(false);
+  const [showManageMembers, setShowManageMembers] = useState(false);
   const [draggedTask, setDraggedTask] = useState(null);
+  const [lastFetch, setLastFetch] = useState(0);
 
   useEffect(() => {
     fetchTasks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const interval = setInterval(() => {
+      fetchTasksSilently();
+    }, 10000);
+    return () => clearInterval(interval);
   }, [board.id]);
 
   const fetchTasks = async () => {
     try {
       setLoading(true);
       const response = await boardsAPI.getBoardTasks(board.id);
-      setTasks(response.tasks || []);
+      setTasks(response.data.tasks || []);
+      setLastFetch(Date.now());
     } catch (error) {
       console.error('Failed to fetch tasks:', error);
       setTasks([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchTasksSilently = async () => {
+    try {
+      const response = await boardsAPI.getBoardTasks(board.id);
+      const newTasks = response.data.tasks || [];
+
+      const tasksChanged = JSON.stringify(newTasks) !== JSON.stringify(tasks);
+      if (tasksChanged) {
+        setTasks(newTasks);
+        setLastFetch(Date.now());
+      }
+    } catch (error) {
+      console.debug('Background refresh failed:', error);
     }
   };
 
@@ -42,9 +64,9 @@ const TaskBoard = ({ board, onBack }) => {
     }
   };
 
-  const handleInviteUser = async (username) => {
+  const handleInviteUser = async (username, message) => {
     try {
-      await boardsAPI.inviteUser(board.id, username);
+      await boardsAPI.inviteUser(board.id, username, message);
       setShowInviteUser(false);
       alert(`User ${username} invited successfully!`);
     } catch (error) {
@@ -63,6 +85,16 @@ const TaskBoard = ({ board, onBack }) => {
     } catch (error) {
       console.error('Failed to update task:', error);
       alert('Failed to update task. Please try again.');
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await boardsAPI.deleteBoardTask(board.id, taskId);
+      await fetchTasks();
+    } catch (error) {
+      console.error('Failed to delete task:', error);
+      alert('Failed to delete task. Please try again.');
     }
   };
 
@@ -116,13 +148,22 @@ const TaskBoard = ({ board, onBack }) => {
           </button>
 
           {board.role === 'admin' && (
-            <button
-              onClick={() => setShowInviteUser(true)}
-              className={styles.actionButton}
-            >
-              <UserPlus size={16} />
-              Invite User
-            </button>
+            <>
+              <button
+                onClick={() => setShowInviteUser(true)}
+                className={styles.actionButton}
+              >
+                <UserPlus size={16} />
+                Invite User
+              </button>
+              <button
+                onClick={() => setShowManageMembers(true)}
+                className={styles.actionButton}
+              >
+                <Users size={16} />
+                Manage Members
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -155,6 +196,7 @@ const TaskBoard = ({ board, onBack }) => {
                     task={task}
                     onUpdate={(updates) => handleUpdateTask(task.id, updates)}
                     onDragStart={(e) => handleDragStart(e, task)}
+                    onDelete={() => handleDeleteTask(task.id)}
                   />
                 ))}
 
@@ -180,6 +222,13 @@ const TaskBoard = ({ board, onBack }) => {
         <InviteUserModal
           onClose={() => setShowInviteUser(false)}
           onInvite={handleInviteUser}
+        />
+      )}
+
+      {showManageMembers && (
+        <ManageMembersModal
+          board={board}
+          onClose={() => setShowManageMembers(false)}
         />
       )}
     </div>

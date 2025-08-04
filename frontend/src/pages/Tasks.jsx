@@ -20,6 +20,7 @@ export function Tasks({
   const [editingIndex, setEditingIndex] = React.useState(null);
   const [taskToDelete, setTaskToDelete] = React.useState(null);
   const [filter, setFilter] = React.useState('');
+  const [activeTab, setActiveTab] = React.useState('active');
 
   const handleEditTask = (task, index) => {
     setEditingTask({
@@ -95,7 +96,12 @@ export function Tasks({
     }
   };
 
-  let filteredTasks = [...tasks];
+  // First filter by tab (active/completed)
+  let filteredTasks = tasks.filter((task) =>
+    activeTab === 'active' ? !task.completed : task.completed
+  );
+
+  // Then apply sorting
   if (filter === 'priority') {
     const priorityOrder = { High: 3, Medium: 2, Low: 1 };
     filteredTasks.sort(
@@ -116,6 +122,21 @@ export function Tasks({
             onClick={() => setCurrentPage('dashboard')}
           >
             ← Dashboard
+          </button>
+        </div>
+
+        <div className={styles.tabContainer}>
+          <button
+            className={`${styles.tab} ${activeTab === 'active' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('active')}
+          >
+            Active ({tasks.filter((t) => !t.completed).length})
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'completed' ? styles.activeTab : ''}`}
+            onClick={() => setActiveTab('completed')}
+          >
+            Completed ({tasks.filter((t) => t.completed).length})
           </button>
         </div>
 

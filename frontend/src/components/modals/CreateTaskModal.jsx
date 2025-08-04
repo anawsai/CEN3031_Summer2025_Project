@@ -7,7 +7,6 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
     description: '',
     due_date: '',
     priority: 'Medium',
-    status: 'todo',
     assigned_to: '',
   });
   const [loading, setLoading] = useState(false);
@@ -82,29 +81,16 @@ const CreateTaskModal = ({ onClose, onCreate }) => {
             rows='3'
           />
 
-          <div className={styles.formRow}>
-            <select
-              name='priority'
-              value={formData.priority}
-              onChange={handleChange}
-              className={styles.input}
-            >
-              <option value='Low'>Low Priority</option>
-              <option value='Medium'>Medium Priority</option>
-              <option value='High'>High Priority</option>
-            </select>
-
-            <select
-              name='status'
-              value={formData.status}
-              onChange={handleChange}
-              className={styles.input}
-            >
-              <option value='todo'>To Do</option>
-              <option value='in_progress'>In Progress</option>
-              <option value='done'>Done</option>
-            </select>
-          </div>
+          <select
+            name='priority'
+            value={formData.priority}
+            onChange={handleChange}
+            className={styles.input}
+          >
+            <option value='Low'>Low Priority</option>
+            <option value='Medium'>Medium Priority</option>
+            <option value='High'>High Priority</option>
+          </select>
 
           <div className={styles.formRow}>
             <input

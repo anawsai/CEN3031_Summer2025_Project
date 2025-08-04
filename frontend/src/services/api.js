@@ -88,5 +88,18 @@ export const boardsAPI = {
   createBoardTask: (id, data) => api.post(`/boards/${id}/tasks`, data),
   updateBoardTask: (boardId, taskId, data) =>
     api.put(`/boards/${boardId}/tasks/${taskId}`, data),
-  inviteUser: (id, username) => api.post(`/boards/${id}/invite`, { username }),
+  deleteBoardTask: (boardId, taskId) =>
+    api.delete(`/boards/${boardId}/tasks/${taskId}`),
+  inviteUser: (boardId, username, message) =>
+    api.post(`/boards/${boardId}/invite`, { username, message }),
+  getMembers: (boardId) => api.get(`/boards/${boardId}/members`),
+  removeMember: (boardId, memberId) =>
+    api.delete(`/boards/${boardId}/members/${memberId}`),
+};
+
+// Invites API functions
+export const invitesAPI = {
+  getInvites: () => api.get('/invites'),
+  acceptInvite: (inviteId) => api.post(`/invites/${inviteId}/accept`),
+  declineInvite: (inviteId) => api.post(`/invites/${inviteId}/decline`),
 };
