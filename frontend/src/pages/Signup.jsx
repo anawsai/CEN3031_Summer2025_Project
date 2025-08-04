@@ -2,7 +2,12 @@ import React, { useState } from 'react';
 import { authAPI } from '../services/api';
 import styles from '../styles/signup.module.css';
 
-export function Signup({ setCurrentPage, setIsAuthenticated }) {
+export function Signup({
+  setCurrentPage,
+  setIsAuthenticated,
+  fetchXPData,
+  fetchTasks,
+}) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     firstName: '',
@@ -33,13 +38,11 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
     setError('');
     try {
       const response = await authAPI.register(formData);
-      if (response.access_token) {
-        localStorage.setItem('access_token', response.access_token);
-        localStorage.setItem('user_data', JSON.stringify(response.user));
-      }
 
-      setIsAuthenticated(true);
-      setCurrentPage('dashboard');
+      // Don't store tokens - make them log in properly
+      // This ensures all data loads correctly on first login
+      alert('Registration successful! Please log in with your new account.');
+      setCurrentPage('home');
     } catch (err) {
       setError(
         err.response?.data?.error || 'Registration failed. Please try again.'
@@ -107,13 +110,19 @@ export function Signup({ setCurrentPage, setIsAuthenticated }) {
               placeholder='Major'
               className={styles.input}
             />
-            <input
+            <select
               name='year'
               value={formData.year}
               onChange={handleChange}
-              placeholder='Year'
               className={styles.input}
-            />
+            >
+              <option value=''>Select Year</option>
+              <option value='Freshman'>Freshman</option>
+              <option value='Sophomore'>Sophomore</option>
+              <option value='Junior'>Junior</option>
+              <option value='Senior'>Senior</option>
+              <option value='Graduate'>Graduate</option>
+            </select>
           </>
         )}
 

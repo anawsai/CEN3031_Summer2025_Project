@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { authAPI } from '../services/api';
 import styles from '../styles/login.module.css';
 
-export function Login({ setCurrentPage, setIsAuthenticated, setTasks }) {
+export function Login({
+  setCurrentPage,
+  setIsAuthenticated,
+  setTasks,
+  fetchXPData,
+  fetchTasks,
+}) {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -22,6 +28,11 @@ export function Login({ setCurrentPage, setIsAuthenticated, setTasks }) {
 
       setTasks([]);
       setIsAuthenticated(true);
+
+      // Fetch XP and tasks data after successful login
+      if (fetchXPData) fetchXPData();
+      if (fetchTasks) fetchTasks();
+
       setCurrentPage('dashboard');
     } catch (err) {
       setError(err.response?.data?.error || 'Login failed. Please try again.');

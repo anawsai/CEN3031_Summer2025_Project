@@ -148,11 +148,6 @@
               '';
             };
 
-            git-hooks.hooks = {
-              treefmt.enable = true;
-              treefmt.package = config.treefmt.build.wrapper;
-            };
-
             enterShell = ''
               # Auto-install npm packages if needed
               if [ ! -d "frontend/node_modules" ] || [ "frontend/package.json" -nt "frontend/node_modules" ]; then

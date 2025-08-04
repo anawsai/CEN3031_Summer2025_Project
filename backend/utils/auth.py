@@ -57,7 +57,7 @@ def require_auth(f):
 
 
 def get_or_create_user_profile(auth_user, access_token=None):
-    """Get or create user profile in our custom Users table"""
+    """Get or create user profile in our custom users table"""
     try:
         # Use service role for querying to bypass RLS during login
         # In production, you might want to create a separate client with the user's token

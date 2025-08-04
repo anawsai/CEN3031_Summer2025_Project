@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Trophy, Star, User, Award } from 'lucide-react';
+import { ArrowLeft, Trophy, Star, User, Award, Edit } from 'lucide-react';
 import api from '../services/api';
+import EditProfileModal from '../components/modals/EditProfileModal';
 import styles from '../styles/profile.module.css';
 
 const Profile = ({ setCurrentPage, xpData }) => {
   const [userData, setUserData] = useState(null);
   const [achievements, setAchievements] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     const storedUserData = localStorage.getItem('user_data');
@@ -74,8 +76,25 @@ const Profile = ({ setCurrentPage, xpData }) => {
                 {userData?.first_name} {userData?.last_name}
               </p>
               <p className={styles.email}>{userData?.email}</p>
+              <div className={styles.academicInfo}>
+                <p className={styles.major}>
+                  Major: {userData?.major || 'Not specified'}
+                </p>
+                <p className={styles.year}>
+                  Year: {userData?.year || 'Not specified'}
+                </p>
+              </div>
             </div>
           </div>
+
+          {/* Edit Profile Button */}
+          <button
+            onClick={() => setShowEditModal(true)}
+            className={styles.editButton}
+          >
+            <Edit size={16} />
+            Edit Profile
+          </button>
 
           {/* XP Progress */}
           {xpData && (
@@ -201,6 +220,18 @@ const Profile = ({ setCurrentPage, xpData }) => {
             </>
           )}
         </div>
+
+        {/* Edit Profile Modal */}
+        {showEditModal && (
+          <EditProfileModal
+            userData={userData}
+            onClose={() => setShowEditModal(false)}
+            onUpdate={(updatedData) => {
+              setUserData(updatedData);
+              setShowEditModal(false);
+            }}
+          />
+        )}
       </div>
     </div>
   );

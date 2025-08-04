@@ -108,7 +108,7 @@ def register():
         }
 
         profile_response = (
-            service_supabase.table("Users").insert(user_profile_data).execute()
+            service_supabase.table("users").insert(user_profile_data).execute()
         )
 
         if profile_response.data:
@@ -133,8 +133,19 @@ def register():
         return jsonify({"error": "Failed to create user profile"}), 400
 
     except Exception as e:
-        print(f"Registration error: {e}")
-        return jsonify({"error": "Registration failed", "details": str(e)}), 500
+        error_message = str(e)
+        print(f"Registration error: {error_message}")
+
+        # Check for specific Supabase auth errors
+        if "User already registered" in error_message:
+            return jsonify({"error": "An account with this email already exists"}), 400
+        if (
+            "duplicate key value violates unique constraint" in error_message
+            and "username" in error_message
+        ):
+            return jsonify({"error": "Username already exists"}), 400
+
+        return jsonify({"error": "Registration failed", "details": error_message}), 500
 
 
 @app.route("/api/auth/login", methods=["POST"])
@@ -463,7 +474,7 @@ def complete_task(task_id):
             xp_response = (
                 service_supabase.table("user_xp")
                 .select("*")
-                .eq("user_id", auth_id)
+                .eq("user_id", user_id)
                 .execute()
             )
 
@@ -471,11 +482,11 @@ def complete_task(task_id):
                 current_xp = xp_response.data[0]["total_xp"]
                 new_xp = current_xp + 10
                 service_supabase.table("user_xp").update({"total_xp": new_xp}).eq(
-                    "user_id", auth_id
+                    "user_id", user_id
                 ).execute()
             else:
                 service_supabase.table("user_xp").insert(
-                    {"user_id": auth_id, "total_xp": 10}
+                    {"user_id": user_id, "total_xp": 10}
                 ).execute()
 
             xp_awarded = 10
@@ -486,7 +497,7 @@ def complete_task(task_id):
                 existing_stats = (
                     service_supabase.table("daily_task_stats")
                     .select("*")
-                    .eq("user_id", auth_id)
+                    .eq("user_id", user_id)
                     .eq("date", today)
                     .execute()
                 )
@@ -495,23 +506,37 @@ def complete_task(task_id):
                     current_count = existing_stats.data[0]["tasks_completed"]
                     service_supabase.table("daily_task_stats").update(
                         {"tasks_completed": current_count + 1}
-                    ).eq("user_id", auth_id).eq("date", today).execute()
+                    ).eq("user_id", user_id).eq("date", today).execute()
                 else:
                     service_supabase.table("daily_task_stats").insert(
-                        {"user_id": auth_id, "date": today, "tasks_completed": 1}
+                        {"user_id": user_id, "date": today, "tasks_completed": 1}
                     ).execute()
             except Exception as stats_error:
                 print(f"Failed to update daily stats: {stats_error}")
 
-            from utils.achievements import check_task_achievements, get_user_stats
+            # Check for newly earned achievements
+            from utils.achievements_with_db import check_and_award_achievements
 
+            newly_earned_achievements = []
             try:
-                total_tasks, _ = get_user_stats(auth_id, service_supabase)
-                newly_earned_achievements = check_task_achievements(
-                    auth_id, total_tasks, service_supabase
+                newly_earned_achievements = check_and_award_achievements(
+                    user_id, service_supabase
                 )
+
+                # Add XP from achievements to the response
+                if newly_earned_achievements:
+                    print(f"Newly earned achievements: {newly_earned_achievements}")
+                    achievement_xp = sum(
+                        a["xp_reward"] for a in newly_earned_achievements
+                    )
+                    xp_awarded += achievement_xp
+                    print(f"Total XP awarded (task + achievements): {xp_awarded}")
+
             except Exception as achievement_error:
                 print(f"Failed to check achievements: {achievement_error}")
+                import traceback
+
+                traceback.print_exc()
                 newly_earned_achievements = []
 
         response_data = {
@@ -551,10 +576,35 @@ def get_user_xp():
         auth_id = get_jwt_identity()
 
         service_supabase = get_service_role_client()
+
+        # Get user_id from users table
+        user_response = (
+            service_supabase.table("users")
+            .select("id")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+
+        if not user_response.data:
+            # User profile doesn't exist, return default values
+            return jsonify(
+                {
+                    "total_xp": 0,
+                    "level": 1,
+                    "level_name": "Hatchling",
+                    "xp_to_next_level": 100,
+                    "progress_percent": 0,
+                    "min_xp_for_level": 0,
+                    "max_xp_for_level": 100,
+                }
+            ), 200
+
+        user_id = user_response.data[0]["id"]
+
         xp_response = (
             service_supabase.table("user_xp")
             .select("*")
-            .eq("user_id", auth_id)
+            .eq("user_id", user_id)
             .execute()
         )
 
@@ -591,10 +641,190 @@ def get_user_xp():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/user/profile", methods=["PUT"])
+@jwt_required()
+def update_profile():
+    """Update user profile (major and year only)"""
+    try:
+        auth_id = get_jwt_identity()
+        data = request.get_json()
+
+        # Validate input
+        major = data.get("major", "").strip()
+        year = data.get("year", "").strip()
+
+        # Get service role client
+        service_supabase = get_service_role_client()
+
+        # Update user profile
+        update_response = (
+            service_supabase.table("users")
+            .update({"major": major, "year": year})
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+
+        if update_response.data:
+            return jsonify(
+                {
+                    "message": "Profile updated successfully",
+                    "user": update_response.data[0],
+                }
+            ), 200
+        return jsonify({"error": "Failed to update profile"}), 400
+
+    except Exception as e:
+        print(f"Profile update error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/achievements", methods=["GET"])
+@jwt_required()
 def get_achievements():
-    """get user's achievements and badges"""
-    return jsonify({"message": "get achievements endpoint - todo: implement"}), 501
+    """Get user's achievements with emoji badges"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        # Initialize default values
+        total_tasks = 0
+        total_focus = 0
+        user_level = 1
+
+        try:
+            # Get user's stats
+            user_id_response = (
+                service_supabase.table("users")
+                .select("id")
+                .eq("auth_id", auth_id)
+                .execute()
+            )
+
+            if user_id_response.data:
+                user_id = user_id_response.data[0]["id"]
+
+                # Get task completion count
+                tasks_response = (
+                    service_supabase.table("Tasks")
+                    .select("id")
+                    .eq("user_id", user_id)
+                    .eq("completed", True)
+                    .execute()
+                )
+                total_tasks = len(tasks_response.data) if tasks_response.data else 0
+        except Exception as e:
+            print(f"Error getting task count: {e}")
+
+        try:
+            # Get focus session count
+            focus_response = (
+                service_supabase.table("focus_sessions")
+                .select("id")
+                .eq("user_id", user_id)
+                .eq("completed", True)
+                .execute()
+            )
+            total_focus = len(focus_response.data) if focus_response.data else 0
+        except Exception as e:
+            print(f"Error getting focus count: {e}")
+
+        try:
+            # Get user's XP and calculate level
+            from utils.level_system import get_level_info
+
+            xp_response = (
+                service_supabase.table("user_xp")
+                .select("total_xp")
+                .eq("user_id", user_id)
+                .execute()
+            )
+            if xp_response.data:
+                total_xp = xp_response.data[0]["total_xp"]
+                level_info = get_level_info(total_xp)
+                user_level = level_info["level"]
+            else:
+                user_level = 1
+        except Exception as e:
+            print(f"Error getting user level: {e}")
+
+        # Get achievements from database
+        achievements_response = (
+            service_supabase.table("achievements")
+            .select("*")
+            .order("sort_order")
+            .execute()
+        )
+
+        if not achievements_response.data:
+            return jsonify({"error": "No achievements found in database"}), 500
+
+        # Process achievements and check if user has unlocked them
+        all_achievements = []
+        for db_achievement in achievements_response.data:
+            # Check if user meets criteria
+            unlocked = False
+            if db_achievement["category"] == "tasks":
+                unlocked = total_tasks >= db_achievement["requirement_value"]
+            elif db_achievement["category"] == "focus":
+                unlocked = total_focus >= db_achievement["requirement_value"]
+            elif db_achievement["category"] == "level":
+                unlocked = user_level >= db_achievement["requirement_value"]
+
+            # Format for frontend
+            achievement = {
+                "id": db_achievement["id"],
+                "name": db_achievement["name"],
+                "description": db_achievement["description"],
+                "icon": db_achievement["icon"],
+                "xp_reward": db_achievement["xp_reward"],
+                "criteria": f"{db_achievement['category']} >= {db_achievement['requirement_value']}",
+                "unlocked": unlocked,
+                "category": db_achievement["category"],
+                "requirement_value": db_achievement["requirement_value"],
+            }
+            all_achievements.append(achievement)
+
+        # Get user's earned achievements from database
+        earned_response = (
+            service_supabase.table("user_achievements")
+            .select("achievement_id, earned_at")
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        earned_dates = {}
+        if earned_response.data:
+            for item in earned_response.data:
+                earned_dates[item["achievement_id"]] = item["earned_at"]
+
+        # Add earned dates to unlocked achievements
+        total_earned = 0
+        for achievement in all_achievements:
+            if achievement["unlocked"]:
+                total_earned += 1
+                if achievement["id"] in earned_dates:
+                    achievement["earned_at"] = earned_dates[achievement["id"]]
+
+        # Add debug info
+        print(
+            f"User stats - Tasks: {total_tasks}, Focus: {total_focus}, Level: {user_level}"
+        )
+
+        return jsonify(
+            {
+                "achievements": all_achievements,
+                "total_earned": total_earned,
+                "stats": {
+                    "tasks_completed": total_tasks,
+                    "focus_sessions": total_focus,
+                    "level": user_level,
+                },
+            }
+        ), 200
+
+    except Exception as e:
+        print(f"Error fetching achievements: {e}")
+        return jsonify({"error": "Failed to fetch achievements"}), 500
 
 
 @app.route("/api/pomodoro/start", methods=["POST"])
@@ -615,11 +845,13 @@ def start_pomodoro_session():
         if not user_response.data:
             return jsonify({"error": "User profile not found"}), 404
 
+        user_id = user_response.data[0]["id"]
+
         new_session = (
             service_supabase.table("focus_sessions")
             .insert(
                 {
-                    "user_id": auth_id,
+                    "user_id": user_id,
                     "start_time": datetime.utcnow().isoformat(),
                     "duration": 1500,
                     "completed": False,
@@ -661,11 +893,13 @@ def complete_pomodoro_session(session_id):
         if not user_response.data:
             return jsonify({"error": "User profile not found"}), 404
 
+        user_id = user_response.data[0]["id"]
+
         session_result = (
             service_supabase.table("focus_sessions")
             .select("*")
             .eq("id", session_id)
-            .eq("user_id", auth_id)
+            .eq("user_id", user_id)
             .execute()
         )
 
@@ -690,7 +924,7 @@ def complete_pomodoro_session(session_id):
             xp_response = (
                 service_supabase.table("user_xp")
                 .select("*")
-                .eq("user_id", auth_id)
+                .eq("user_id", user_id)
                 .execute()
             )
 
@@ -698,21 +932,30 @@ def complete_pomodoro_session(session_id):
                 current_xp = xp_response.data[0]["total_xp"]
                 new_xp = current_xp + xp_awarded
                 service_supabase.table("user_xp").update({"total_xp": new_xp}).eq(
-                    "user_id", auth_id
+                    "user_id", user_id
                 ).execute()
             else:
                 service_supabase.table("user_xp").insert(
-                    {"user_id": auth_id, "total_xp": xp_awarded}
+                    {"user_id": user_id, "total_xp": xp_awarded}
                 ).execute()
 
-            from utils.achievements import check_focus_achievements, get_user_stats
+            # Check for newly earned achievements
+            from utils.achievements_with_db import check_and_award_achievements
 
             newly_earned_achievements = []
             try:
-                _, total_focus = get_user_stats(auth_id, service_supabase)
-                newly_earned_achievements = check_focus_achievements(
-                    auth_id, total_focus, service_supabase
-                )
+                if user_id:
+                    newly_earned_achievements = check_and_award_achievements(
+                        user_id, service_supabase
+                    )
+
+                    # Add XP from achievements to the response
+                    if newly_earned_achievements:
+                        achievement_xp = sum(
+                            a["xp_reward"] for a in newly_earned_achievements
+                        )
+                        xp_awarded += achievement_xp
+
             except Exception as achievement_error:
                 print(f"Failed to check achievements: {achievement_error}")
 
@@ -930,13 +1173,26 @@ def get_task_analytics():
 
         service_supabase = get_service_role_client()
 
+        # Get user_id from users table
+        user_response = (
+            service_supabase.table("users")
+            .select("id")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+
+        if not user_response.data:
+            return jsonify({"error": "User profile not found"}), 404
+
+        user_id = user_response.data[0]["id"]
+
         start_date = request.args.get("start_date", date.today().isoformat())
         end_date = request.args.get("end_date", date.today().isoformat())
 
         stats_response = (
             service_supabase.table("daily_task_stats")
             .select("*")
-            .eq("user_id", auth_id)
+            .eq("user_id", user_id)
             .gte("date", start_date)
             .lte("date", end_date)
             .order("date")

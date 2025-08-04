@@ -231,6 +231,8 @@ function App() {
         setCurrentPage={setCurrentPage}
         setIsAuthenticated={setIsAuthenticated}
         setTasks={setTasks}
+        fetchXPData={fetchXPData}
+        fetchTasks={fetchTasks}
       />
     );
   } else if (currentPage === 'signup') {
@@ -238,6 +240,8 @@ function App() {
       <Signup
         setCurrentPage={setCurrentPage}
         setIsAuthenticated={setIsAuthenticated}
+        fetchXPData={fetchXPData}
+        fetchTasks={fetchTasks}
       />
     );
   } else if (currentPage === 'tasks') {

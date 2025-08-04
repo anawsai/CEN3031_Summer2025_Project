@@ -3,3 +3,4 @@ Flask-CORS
 python-dotenv
 supabase
 flask_jwt_extended
+requests
