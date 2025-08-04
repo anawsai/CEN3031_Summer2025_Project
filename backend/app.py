@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 from config import config
 from dotenv import load_dotenv
@@ -20,7 +20,6 @@ from utils.database import (
     test_connection,
 )
 
-# load environment variables
 load_dotenv()
 
 app = Flask(__name__)
@@ -31,7 +30,6 @@ app.config.from_object(config[config_name])
 jwt = JWTManager(app)
 CORS(app)
 
-# initialize supabase connection
 try:
     init_supabase()
     print("Supabase connection initialized successfully")
@@ -77,6 +75,15 @@ def register():
 
         if not username:
             return jsonify({"error": "Username is required"}), 400
+
+        if len(password) < 6:
+            return jsonify(
+                {"error": "Password must be at least 6 characters long"}
+            ), 400
+        if not any(char.isdigit() for char in password):
+            return jsonify({"error": "Password must contain at least one number"}), 400
+        if not any(char in '!@#$%^&*(),.?":{}|<>' for char in password):
+            return jsonify({"error": "Password must contain at least one symbol"}), 400
 
         supabase = get_supabase_client()
 
@@ -136,7 +143,6 @@ def register():
         error_message = str(e)
         print(f"Registration error: {error_message}")
 
-        # Check for specific Supabase auth errors
         if "User already registered" in error_message:
             return jsonify({"error": "An account with this email already exists"}), 400
         if (
@@ -146,6 +152,52 @@ def register():
             return jsonify({"error": "Username already exists"}), 400
 
         return jsonify({"error": "Registration failed", "details": error_message}), 500
+
+
+@app.route("/api/auth/check-username", methods=["POST"])
+def check_username():
+    """Check if username is available"""
+    try:
+        data = request.get_json()
+        username = data.get("username", "").strip()
+
+        if not username:
+            return jsonify({"available": False, "message": "Username is required"}), 200
+
+        if len(username) < 3:
+            return jsonify(
+                {
+                    "available": False,
+                    "message": "Username must be at least 3 characters",
+                }
+            ), 200
+
+        if not username.replace("_", "").replace("-", "").isalnum():
+            return jsonify(
+                {
+                    "available": False,
+                    "message": "Username can only contain letters, numbers, - and _",
+                }
+            ), 200
+
+        service_supabase = get_service_role_client()
+        existing = (
+            service_supabase.table("users")
+            .select("id")
+            .eq("username", username)
+            .execute()
+        )
+
+        if existing.data:
+            return jsonify(
+                {"available": False, "message": "Username already taken"}
+            ), 200
+
+        return jsonify({"available": True, "message": "Username available"}), 200
+
+    except Exception as e:
+        print(f"Username check error: {e}")
+        return jsonify({"error": "Failed to check username"}), 500
 
 
 @app.route("/api/auth/login", methods=["POST"])
@@ -514,7 +566,6 @@ def complete_task(task_id):
             except Exception as stats_error:
                 print(f"Failed to update daily stats: {stats_error}")
 
-            # Check for newly earned achievements
             from utils.achievements_with_db import check_and_award_achievements
 
             newly_earned_achievements = []
@@ -523,7 +574,6 @@ def complete_task(task_id):
                     user_id, service_supabase
                 )
 
-                # Add XP from achievements to the response
                 if newly_earned_achievements:
                     print(f"Newly earned achievements: {newly_earned_achievements}")
                     achievement_xp = sum(
@@ -566,6 +616,77 @@ def get_schedule():
     return jsonify({"message": "get schedule endpoint - todo: implement"}), 501
 
 
+@app.route("/api/admin/adjust-xp", methods=["POST"])
+@jwt_required()
+def admin_adjust_xp():
+    """Admin endpoint to adjust any user's XP"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        admin_response = (
+            service_supabase.table("users")
+            .select("is_admin")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+
+        if not admin_response.data or not admin_response.data[0].get("is_admin", False):
+            return jsonify({"error": "Unauthorized - Admin access required"}), 403
+
+        data = request.get_json()
+        target_email = data.get("email")
+        xp_change = data.get("xp_change", 0)
+
+        if not target_email:
+            return jsonify({"error": "Email is required"}), 400
+
+        target_user = (
+            service_supabase.table("users")
+            .select("id, email, username")
+            .eq("email", target_email)
+            .execute()
+        )
+
+        if not target_user.data:
+            return jsonify({"error": "User not found"}), 404
+
+        target_user_id = target_user.data[0]["id"]
+
+        xp_response = (
+            service_supabase.table("user_xp")
+            .select("total_xp")
+            .eq("user_id", target_user_id)
+            .execute()
+        )
+
+        if xp_response.data:
+            current_xp = xp_response.data[0]["total_xp"]
+            new_xp = max(0, current_xp + xp_change)
+
+            service_supabase.table("user_xp").update({"total_xp": new_xp}).eq(
+                "user_id", target_user_id
+            ).execute()
+        else:
+            new_xp = max(0, xp_change)
+            service_supabase.table("user_xp").insert(
+                {"user_id": target_user_id, "total_xp": new_xp}
+            ).execute()
+
+        return jsonify(
+            {
+                "message": "XP adjusted successfully",
+                "user": target_user.data[0]["username"],
+                "new_xp": new_xp,
+                "change": xp_change,
+            }
+        ), 200
+
+    except Exception as e:
+        print(f"Admin XP adjustment error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/xp", methods=["GET"])
 @jwt_required()
 def get_user_xp():
@@ -577,7 +698,6 @@ def get_user_xp():
 
         service_supabase = get_service_role_client()
 
-        # Get user_id from users table
         user_response = (
             service_supabase.table("users")
             .select("id")
@@ -614,17 +734,19 @@ def get_user_xp():
 
             level_info = get_level_info(total_xp)
 
-            return jsonify(
-                {
-                    "total_xp": total_xp,
-                    "level": level_info["level"],
-                    "level_name": level_info["level_name"],
-                    "xp_to_next_level": level_info["xp_to_next_level"],
-                    "progress_percent": level_info["progress_percent"],
-                    "min_xp_for_level": level_info["min_xp_for_level"],
-                    "max_xp_for_level": level_info["max_xp_for_level"],
-                }
-            ), 200
+            response_data = {
+                "total_xp": total_xp,
+                "level": level_info["level"],
+                "level_name": level_info["level_name"],
+                "xp_to_next_level": level_info["xp_to_next_level"],
+                "progress_percent": level_info["progress_percent"],
+                "min_xp_for_level": level_info["min_xp_for_level"],
+            }
+
+            if level_info["level"] < 10:
+                response_data["max_xp_for_level"] = level_info["max_xp_for_level"]
+
+            return jsonify(response_data), 200
         return jsonify(
             {
                 "total_xp": 0,
@@ -641,6 +763,31 @@ def get_user_xp():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/user/is-admin", methods=["GET"])
+@jwt_required()
+def check_admin_status():
+    """Check if current user is admin"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("is_admin")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+
+        if not user_response.data:
+            return jsonify({"is_admin": False}), 200
+
+        return jsonify({"is_admin": user_response.data[0].get("is_admin", False)}), 200
+
+    except Exception as e:
+        print(f"Admin check error: {e}")
+        return jsonify({"is_admin": False}), 200
+
+
 @app.route("/api/user/profile", methods=["PUT"])
 @jwt_required()
 def update_profile():
@@ -653,10 +800,8 @@ def update_profile():
         major = data.get("major", "").strip()
         year = data.get("year", "").strip()
 
-        # Get service role client
         service_supabase = get_service_role_client()
 
-        # Update user profile
         update_response = (
             service_supabase.table("users")
             .update({"major": major, "year": year})
@@ -678,6 +823,56 @@ def update_profile():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/analytics/daily-completions", methods=["GET"])
+@jwt_required()
+def get_daily_completions():
+    """Get daily task completions for the past 7 days"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("id")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_id = user_response.data[0]["id"]
+
+        today = date.today()
+        dates = [(today - timedelta(days=i)).isoformat() for i in range(6, -1, -1)]
+
+        stats_response = (
+            service_supabase.table("daily_task_stats")
+            .select("date, tasks_completed")
+            .eq("user_id", user_id)
+            .in_("date", dates)
+            .execute()
+        )
+
+        stats_dict = {
+            stat["date"]: stat["tasks_completed"]
+            for stat in (stats_response.data or [])
+        }
+
+        daily_data = []
+        labels = []
+        for date_str in dates:
+            day_date = datetime.fromisoformat(date_str)
+            labels.append(day_date.strftime("%a"))
+            daily_data.append(stats_dict.get(date_str, 0))
+
+        return jsonify({"labels": labels, "data": daily_data, "dates": dates}), 200
+
+    except Exception as e:
+        print(f"Daily analytics error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/achievements", methods=["GET"])
 @jwt_required()
 def get_achievements():
@@ -686,13 +881,11 @@ def get_achievements():
         auth_id = get_jwt_identity()
         service_supabase = get_service_role_client()
 
-        # Initialize default values
         total_tasks = 0
         total_focus = 0
         user_level = 1
 
         try:
-            # Get user's stats
             user_id_response = (
                 service_supabase.table("users")
                 .select("id")
@@ -703,7 +896,6 @@ def get_achievements():
             if user_id_response.data:
                 user_id = user_id_response.data[0]["id"]
 
-                # Get task completion count
                 tasks_response = (
                     service_supabase.table("Tasks")
                     .select("id")
@@ -716,7 +908,6 @@ def get_achievements():
             print(f"Error getting task count: {e}")
 
         try:
-            # Get focus session count
             focus_response = (
                 service_supabase.table("focus_sessions")
                 .select("id")
@@ -729,7 +920,6 @@ def get_achievements():
             print(f"Error getting focus count: {e}")
 
         try:
-            # Get user's XP and calculate level
             from utils.level_system import get_level_info
 
             xp_response = (
@@ -747,7 +937,6 @@ def get_achievements():
         except Exception as e:
             print(f"Error getting user level: {e}")
 
-        # Get achievements from database
         achievements_response = (
             service_supabase.table("achievements")
             .select("*")
@@ -758,10 +947,8 @@ def get_achievements():
         if not achievements_response.data:
             return jsonify({"error": "No achievements found in database"}), 500
 
-        # Process achievements and check if user has unlocked them
         all_achievements = []
         for db_achievement in achievements_response.data:
-            # Check if user meets criteria
             unlocked = False
             if db_achievement["category"] == "tasks":
                 unlocked = total_tasks >= db_achievement["requirement_value"]
@@ -770,7 +957,6 @@ def get_achievements():
             elif db_achievement["category"] == "level":
                 unlocked = user_level >= db_achievement["requirement_value"]
 
-            # Format for frontend
             achievement = {
                 "id": db_achievement["id"],
                 "name": db_achievement["name"],
@@ -784,7 +970,6 @@ def get_achievements():
             }
             all_achievements.append(achievement)
 
-        # Get user's earned achievements from database
         earned_response = (
             service_supabase.table("user_achievements")
             .select("achievement_id, earned_at")
@@ -797,7 +982,6 @@ def get_achievements():
             for item in earned_response.data:
                 earned_dates[item["achievement_id"]] = item["earned_at"]
 
-        # Add earned dates to unlocked achievements
         total_earned = 0
         for achievement in all_achievements:
             if achievement["unlocked"]:
@@ -805,7 +989,6 @@ def get_achievements():
                 if achievement["id"] in earned_dates:
                     achievement["earned_at"] = earned_dates[achievement["id"]]
 
-        # Add debug info
         print(
             f"User stats - Tasks: {total_tasks}, Focus: {total_focus}, Level: {user_level}"
         )
@@ -939,7 +1122,6 @@ def complete_pomodoro_session(session_id):
                     {"user_id": user_id, "total_xp": xp_awarded}
                 ).execute()
 
-            # Check for newly earned achievements
             from utils.achievements_with_db import check_and_award_achievements
 
             newly_earned_achievements = []
@@ -949,7 +1131,6 @@ def complete_pomodoro_session(session_id):
                         user_id, service_supabase
                     )
 
-                    # Add XP from achievements to the response
                     if newly_earned_achievements:
                         achievement_xp = sum(
                             a["xp_reward"] for a in newly_earned_achievements
@@ -979,14 +1160,14 @@ def complete_pomodoro_session(session_id):
 @app.route("/api/boards", methods=["GET"])
 @jwt_required()
 def get_shared_boards():
-    """get user's shared task boards"""
+    """get user's shared task boards (owned and joined)"""
     try:
         auth_id = get_jwt_identity()
         service_supabase = get_service_role_client()
 
         user_response = (
             service_supabase.table("users")
-            .select("id")
+            .select("id, email")
             .eq("auth_id", auth_id)
             .execute()
         )
@@ -994,14 +1175,50 @@ def get_shared_boards():
             return jsonify({"error": "User profile not found"}), 404
 
         user_id = user_response.data[0]["id"]
+        user_email = user_response.data[0]["email"]
 
-        board_response = (
+        owned_boards = (
             service_supabase.table("SharedBoards")
-            .select("*")
+            .select("*, users!inner(username)")
             .eq("user_id", user_id)
             .execute()
         )
-        boards = board_response.data if board_response.data else []
+
+        boards = []
+        if owned_boards.data:
+            for board in owned_boards.data:
+                boards.append(
+                    {
+                        "id": board["id"],
+                        "name": board["name"],
+                        "description": board.get("description", ""),
+                        "created_by": board["users"]["username"],
+                        "created_at": board["create_date"],
+                        "role": "admin",
+                    }
+                )
+
+        accepted_invites = (
+            service_supabase.table("BoardInvites")
+            .select("*, SharedBoards!inner(*, users!inner(username))")
+            .eq("invited_email", user_email)
+            .eq("status", "Accepted")
+            .execute()
+        )
+
+        if accepted_invites.data:
+            for invite in accepted_invites.data:
+                board = invite["SharedBoards"]
+                boards.append(
+                    {
+                        "id": board["id"],
+                        "name": board["name"],
+                        "description": board.get("description", ""),
+                        "created_by": board["users"]["username"],
+                        "created_at": board["create_date"],
+                        "role": "member",
+                    }
+                )
 
         return jsonify({"boards": boards}), 200
 
@@ -1036,6 +1253,7 @@ def create_shared_board():
         board_data = {
             "id": str(uuid.uuid4()),
             "name": name,
+            "description": data.get("description", ""),
             "user_id": user_id,
             # No create_date since it sets to now() default in Supabase - Ant
         }
@@ -1059,18 +1277,18 @@ def create_shared_board():
 @app.route("/api/boards/<string:board_id>/invite", methods=["POST"])
 @jwt_required()
 def invite_to_board(board_id):
-    """invite user to shared board"""
+    """invite user to shared board by username"""
     try:
         data = request.get_json()
-        invited_email = data.get("email")
+        username = data.get("username")
+        message = data.get("message", "Hi! I'd like to invite you to my Taskboard!")
 
-        if not invited_email:
-            return jsonify({"error": "Email to invite is required"}), 400
+        if not username:
+            return jsonify({"error": "Username is required"}), 400
 
         auth_id = get_jwt_identity()
         service_supabase = get_service_role_client()
 
-        # Get requesting user's internal user ID
         user_response = (
             service_supabase.table("users")
             .select("id")
@@ -1081,10 +1299,9 @@ def invite_to_board(board_id):
             return jsonify({"error": "User not found"}), 404
         user_id = user_response.data[0]["id"]
 
-        # Check if board exists and is owned by this user
         board_check = (
             service_supabase.table("SharedBoards")
-            .select("id")
+            .select("id, name")
             .eq("id", board_id)
             .eq("user_id", user_id)
             .execute()
@@ -1092,12 +1309,34 @@ def invite_to_board(board_id):
         if not board_check.data:
             return jsonify({"error": "Board not found or unauthorized"}), 403
 
-        # Insert invite
+        invited_user = (
+            service_supabase.table("users")
+            .select("id, email")
+            .eq("username", username)
+            .execute()
+        )
+        if not invited_user.data:
+            return jsonify({"error": f"User '{username}' not found"}), 404
+
+        invited_email = invited_user.data[0]["email"]
+
+        existing_invite = (
+            service_supabase.table("BoardInvites")
+            .select("id")
+            .eq("board_id", board_id)
+            .eq("invited_email", invited_email)
+            .eq("status", "Pending")
+            .execute()
+        )
+        if existing_invite.data:
+            return jsonify({"error": "User already has a pending invite"}), 400
+
         invite_data = {
             "board_id": board_id,
             "invited_email": invited_email,
             "invited_by": user_id,
-            "status": "pending",
+            "status": "Pending",
+            "message": message,
         }
 
         invite_response = (
@@ -1107,13 +1346,638 @@ def invite_to_board(board_id):
         if invite_response.data:
             return jsonify(
                 {
-                    "message": f"User invited to board {board_id}",
+                    "message": f"User '{username}' invited to board",
                     "invite": invite_response.data[0],
                 }
             ), 201
         return jsonify({"error": "Failed to send invite"}), 500
 
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/invites", methods=["GET"])
+@jwt_required()
+def get_user_invites():
+    """Get pending invites for the current user"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("email")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_email = user_response.data[0]["email"]
+
+        invites_response = (
+            service_supabase.table("BoardInvites")
+            .select(
+                "*, SharedBoards!inner(name, description), users!invited_by(username)"
+            )
+            .eq("invited_email", user_email)
+            .eq("status", "Pending")
+            .execute()
+        )
+
+        invites = []
+        if invites_response.data:
+            for invite in invites_response.data:
+                invites.append(
+                    {
+                        "id": invite["id"],
+                        "board_id": invite["board_id"],
+                        "board_name": invite["SharedBoards"]["name"],
+                        "board_description": invite["SharedBoards"]["description"],
+                        "invited_by": invite["users"]["username"],
+                        "message": invite.get(
+                            "message", "Hi! I'd like to invite you to my Taskboard!"
+                        ),
+                        "invite_date": invite["invite_date"],
+                    }
+                )
+
+        return jsonify({"invites": invites}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/invites/<string:invite_id>/accept", methods=["POST"])
+@jwt_required()
+def accept_invite(invite_id):
+    """Accept a board invite"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("id, email")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_email = user_response.data[0]["email"]
+
+        invite_response = (
+            service_supabase.table("BoardInvites")
+            .select("*, SharedBoards!inner(name)")
+            .eq("id", invite_id)
+            .eq("invited_email", user_email)
+            .eq("status", "Pending")
+            .execute()
+        )
+
+        if not invite_response.data:
+            return jsonify({"error": "Invite not found or already processed"}), 404
+
+        invite = invite_response.data[0]
+        board_id = invite["board_id"]
+
+        update_response = (
+            service_supabase.table("BoardInvites")
+            .update({"status": "Accepted"})
+            .eq("id", invite_id)
+            .execute()
+        )
+
+        if update_response.data:
+            return jsonify(
+                {
+                    "message": "Invite accepted successfully",
+                    "board_id": board_id,
+                    "board_name": invite["SharedBoards"]["name"],
+                }
+            ), 200
+
+        return jsonify({"error": "Failed to accept invite"}), 500
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/invites/<string:invite_id>/decline", methods=["POST"])
+@jwt_required()
+def decline_invite(invite_id):
+    """Decline a board invite"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("email")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_email = user_response.data[0]["email"]
+
+        update_response = (
+            service_supabase.table("BoardInvites")
+            .update({"status": "Declined"})
+            .eq("id", invite_id)
+            .eq("invited_email", user_email)
+            .eq("status", "Pending")
+            .execute()
+        )
+
+        if update_response.data:
+            return jsonify({"message": "Invite declined"}), 200
+
+        return jsonify({"error": "Invite not found or already processed"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/boards/<string:board_id>/members", methods=["GET"])
+@jwt_required()
+def get_board_members(board_id):
+    """Get all members of a board"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("id, email")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_id = user_response.data[0]["id"]
+        user_email = user_response.data[0]["email"]
+
+        board_response = (
+            service_supabase.table("SharedBoards")
+            .select("*, users!inner(username, email)")
+            .eq("id", board_id)
+            .execute()
+        )
+
+        if not board_response.data:
+            return jsonify({"error": "Board not found"}), 404
+
+        board = board_response.data[0]
+        is_owner = board["user_id"] == user_id
+
+        if not is_owner:
+            invite_check = (
+                service_supabase.table("BoardInvites")
+                .select("id")
+                .eq("board_id", board_id)
+                .eq("invited_email", user_email)
+                .eq("status", "Accepted")
+                .execute()
+            )
+            if not invite_check.data:
+                return jsonify({"error": "Unauthorized"}), 403
+
+        members = [
+            {
+                "id": board["user_id"],
+                "username": board["users"]["username"],
+                "email": board["users"]["email"],
+                "role": "owner",
+            }
+        ]
+
+        accepted_invites = (
+            service_supabase.table("BoardInvites")
+            .select("*, users!inner(id, username, email)")
+            .eq("board_id", board_id)
+            .eq("status", "Accepted")
+            .execute()
+        )
+
+        if accepted_invites.data:
+            for invite in accepted_invites.data:
+                member_user = (
+                    service_supabase.table("users")
+                    .select("id, username, email")
+                    .eq("email", invite["invited_email"])
+                    .execute()
+                )
+                if member_user.data:
+                    members.append(
+                        {
+                            "id": member_user.data[0]["id"],
+                            "username": member_user.data[0]["username"],
+                            "email": member_user.data[0]["email"],
+                            "role": "member",
+                        }
+                    )
+
+        return jsonify({"members": members, "is_owner": is_owner}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route(
+    "/api/boards/<string:board_id>/members/<string:member_id>", methods=["DELETE"]
+)
+@jwt_required()
+def remove_board_member(board_id, member_id):
+    """Remove a member from a board (owner only)"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("id")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_id = user_response.data[0]["id"]
+
+        board_check = (
+            service_supabase.table("SharedBoards")
+            .select("id")
+            .eq("id", board_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+        if not board_check.data:
+            return jsonify(
+                {"error": "Unauthorized - only board owner can remove members"}
+            ), 403
+
+        member_response = (
+            service_supabase.table("users")
+            .select("email")
+            .eq("id", member_id)
+            .execute()
+        )
+        if not member_response.data:
+            return jsonify({"error": "Member not found"}), 404
+
+        member_email = member_response.data[0]["email"]
+
+        update_response = (
+            service_supabase.table("BoardInvites")
+            .update({"status": "Removed"})
+            .eq("board_id", board_id)
+            .eq("invited_email", member_email)
+            .eq("status", "Accepted")
+            .execute()
+        )
+
+        if update_response.data:
+            return jsonify({"message": "Member removed successfully"}), 200
+
+        return jsonify({"error": "Member not found in board"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/boards/<string:board_id>/tasks", methods=["GET"])
+@jwt_required()
+def get_board_tasks(board_id):
+    """Get tasks for a shared board"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("id, email")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_id = user_response.data[0]["id"]
+        user_email = user_response.data[0]["email"]
+
+        board_check = (
+            service_supabase.table("SharedBoards")
+            .select("id")
+            .eq("id", board_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        has_access = bool(board_check.data)
+
+        if not has_access:
+            invite_check = (
+                service_supabase.table("BoardInvites")
+                .select("id")
+                .eq("board_id", board_id)
+                .eq("invited_email", user_email)
+                .eq("status", "Accepted")
+                .execute()
+            )
+            has_access = bool(invite_check.data)
+
+        if not has_access:
+            return jsonify({"error": "Unauthorized"}), 403
+
+        tasks_response = (
+            service_supabase.table("board_tasks")
+            .select("*, Tasks!inner(*), users!added_by(username)")
+            .eq("board_id", board_id)
+            .execute()
+        )
+
+        tasks = []
+        if tasks_response.data:
+            for board_task in tasks_response.data:
+                task = board_task["Tasks"]
+                status = "todo"
+                if task.get("completed", False):
+                    status = "done"
+                tasks.append(
+                    {
+                        "id": task["id"],
+                        "title": task["title"],
+                        "description": task.get("description", ""),
+                        "status": board_task.get("status", status),
+                        "priority": task.get("priority", "medium"),
+                        "due_date": task.get("due_date"),
+                        "added_by": board_task["users"]["username"],
+                        "added_at": board_task["added_at"],
+                        "assigned_to": task.get("assigned_to", ""),
+                    }
+                )
+
+        return jsonify({"tasks": tasks}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/boards/<string:board_id>/tasks", methods=["POST"])
+@jwt_required()
+def create_board_task(board_id):
+    """Create a task in a shared board"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+        data = request.get_json()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("id, email")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_id = user_response.data[0]["id"]
+        user_email = user_response.data[0]["email"]
+        board_check = (
+            service_supabase.table("SharedBoards")
+            .select("id")
+            .eq("id", board_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        has_access = bool(board_check.data)
+
+        if not has_access:
+            invite_check = (
+                service_supabase.table("BoardInvites")
+                .select("id")
+                .eq("board_id", board_id)
+                .eq("invited_email", user_email)
+                .eq("status", "Accepted")
+                .execute()
+            )
+            has_access = bool(invite_check.data)
+
+        if not has_access:
+            return jsonify({"error": "Unauthorized"}), 403
+
+        task_data = {
+            "user_id": user_id,
+            "title": data.get("title", ""),
+            "description": data.get("description", ""),
+            "priority": data.get("priority", "medium"),
+            "due_date": data.get("due_date"),
+            "completed": False,
+        }
+
+        assigned_to = data.get("assigned_to", "").strip()
+        if assigned_to:
+            task_data["assigned_to"] = assigned_to
+
+        print(f"Creating task with data: {task_data}")
+
+        task_response = service_supabase.table("Tasks").insert(task_data).execute()
+
+        if task_response.data:
+            task_id = task_response.data[0]["id"]
+
+            board_task_data = {
+                "board_id": board_id,
+                "task_id": task_id,
+                "added_by": user_id,
+                "status": "todo",
+            }
+
+            print(f"Linking task to board with data: {board_task_data}")
+
+            board_task_response = (
+                service_supabase.table("board_tasks").insert(board_task_data).execute()
+            )
+
+            if board_task_response.data:
+                return jsonify(
+                    {
+                        "message": "Task created successfully",
+                        "task": task_response.data[0],
+                    }
+                ), 201
+            print("Failed to link task to board")
+
+        return jsonify({"error": "Failed to create task"}), 500
+
+    except Exception as e:
+        print(f"Error creating board task: {e!s}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/boards/<string:board_id>/tasks/<string:task_id>", methods=["PUT"])
+@jwt_required()
+def update_board_task(board_id, task_id):
+    """Update a task in a shared board"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+        data = request.get_json()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("id, email")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_id = user_response.data[0]["id"]
+        user_email = user_response.data[0]["email"]
+        board_check = (
+            service_supabase.table("SharedBoards")
+            .select("id")
+            .eq("id", board_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        has_access = bool(board_check.data)
+
+        if not has_access:
+            invite_check = (
+                service_supabase.table("BoardInvites")
+                .select("id")
+                .eq("board_id", board_id)
+                .eq("invited_email", user_email)
+                .eq("status", "Accepted")
+                .execute()
+            )
+            has_access = bool(invite_check.data)
+
+        if not has_access:
+            return jsonify({"error": "Unauthorized"}), 403
+
+        task_check = (
+            service_supabase.table("board_tasks")
+            .select("id")
+            .eq("board_id", board_id)
+            .eq("task_id", task_id)
+            .execute()
+        )
+
+        if not task_check.data:
+            return jsonify({"error": "Task not found in this board"}), 404
+
+        update_data = {}
+        if "title" in data:
+            update_data["title"] = data["title"]
+        if "description" in data:
+            update_data["description"] = data["description"]
+        if "status" in data:
+            service_supabase.table("board_tasks").update({"status": data["status"]}).eq(
+                "board_id", board_id
+            ).eq("task_id", task_id).execute()
+
+            if data["status"] == "done":
+                update_data["completed"] = True
+            else:
+                update_data["completed"] = False
+        if "priority" in data:
+            update_data["priority"] = data["priority"]
+        if "due_date" in data:
+            update_data["due_date"] = data["due_date"]
+        if "completed" in data:
+            update_data["completed"] = data["completed"]
+        if "assigned_to" in data:
+            update_data["assigned_to"] = data["assigned_to"]
+
+        update_response = (
+            service_supabase.table("Tasks")
+            .update(update_data)
+            .eq("id", task_id)
+            .execute()
+        )
+
+        if update_response.data:
+            return jsonify(
+                {
+                    "message": "Task updated successfully",
+                    "task": update_response.data[0],
+                }
+            ), 200
+
+        return jsonify({"error": "Failed to update task"}), 500
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/boards/<string:board_id>/tasks/<string:task_id>", methods=["DELETE"])
+@jwt_required()
+def delete_board_task(board_id, task_id):
+    """Delete a task from a shared board"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+
+        user_response = (
+            service_supabase.table("users")
+            .select("id, email")
+            .eq("auth_id", auth_id)
+            .execute()
+        )
+        if not user_response.data:
+            return jsonify({"error": "User not found"}), 404
+
+        user_id = user_response.data[0]["id"]
+        user_email = user_response.data[0]["email"]
+
+        board_check = (
+            service_supabase.table("SharedBoards")
+            .select("id")
+            .eq("id", board_id)
+            .eq("user_id", user_id)
+            .execute()
+        )
+
+        has_access = bool(board_check.data)
+
+        if not has_access:
+            invite_check = (
+                service_supabase.table("BoardInvites")
+                .select("id")
+                .eq("board_id", board_id)
+                .eq("invited_email", user_email)
+                .eq("status", "Accepted")
+                .execute()
+            )
+            has_access = bool(invite_check.data)
+
+        if not has_access:
+            return jsonify({"error": "Unauthorized"}), 403
+
+        service_supabase.table("board_tasks").delete().eq("board_id", board_id).eq(
+            "task_id", task_id
+        ).execute()
+
+        task_delete = (
+            service_supabase.table("Tasks").delete().eq("id", task_id).execute()
+        )
+
+        if task_delete.data:
+            return jsonify({"message": "Task deleted successfully"}), 200
+
+        return jsonify({"error": "Task not found"}), 404
+
+    except Exception as e:
+        print(f"Error deleting task: {e!s}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -1173,7 +2037,6 @@ def get_task_analytics():
 
         service_supabase = get_service_role_client()
 
-        # Get user_id from users table
         user_response = (
             service_supabase.table("users")
             .select("id")

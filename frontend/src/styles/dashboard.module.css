@@ -129,6 +129,123 @@
   color: #ff6f00;
 }
 
+.adminButton {
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.adminButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(255, 215, 0, 0.4);
+}
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: linear-gradient(
+    135deg,
+    rgba(0, 34, 68, 0.95),
+    rgba(0, 51, 102, 0.9)
+  );
+  border-radius: 24px;
+  padding: 40px;
+  min-width: 350px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 2px solid rgba(255, 111, 0, 0.3);
+  position: relative;
+}
+
+.modalClose {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: transparent;
+  border: none;
+  color: #ff6f00;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 5px;
+}
+
+.modalClose:hover {
+  color: #ff8f00;
+}
+
+.adminForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.adminInput {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: white;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+.adminInput:focus {
+  outline: none;
+  border-color: #ff6f00;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.adminSubmitButton {
+  background: linear-gradient(135deg, #ff6f00, #ff8f00);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.adminSubmitButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 111, 0, 0.3);
+}
+
+.adminSubmitButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.successMessage {
+  color: #4caf50;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.errorMessage {
+  color: #ff4444;
+  text-align: center;
+  margin-top: 16px;
+}
+
 .logoutIconButton {
   background: none;
   border: none;
