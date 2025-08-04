@@ -66,7 +66,6 @@ python app.py
 2. **_Install Dependencies_**
    ```sh
    npm install
-   npm install lucide-react
    ```
 3. **_Run the development server_**
    ```sh
