@@ -55,7 +55,7 @@ python app.py
 ```
 
 5. **Test it works**
-   Go to `http://localhost:5000/api/health` - you should see a success message. (I will put it in one of our disc chats)
+   Go to `http://localhost:5000/api/health` - you should see a success message.
 
 ### Frontend Setup
 
@@ -75,13 +75,56 @@ python app.py
 4. **_Test it works_**
    Go to `http://localhost:3000` - you should see the SwampScheduler homepage.
 
+## Reproducible Build Setup (Recommended)
+
+We have a fully reproducible build setup using Nix for both development and production environments. This ensures everyone has the exact same dependencies and configuration.
+
+### Quick Start with Nix
+
+1. **Install Nix** (if you haven't already. we use the determinate nix installer below):
+   ```sh
+   curl --proto '=https' --tlsv1.2 -sSf -L https://install.determinate.systems/nix | sh -s -- install
+   ```
+
+2. **Clone and enter the project**:
+   ```sh
+   git clone https://github.com/yourusername/swampscheduler.git
+   cd swampscheduler
+   ```
+
+3. **Enter the development environment**:
+   ```sh
+   nix develop --impure
+   ```
+
+4. **Run the application**:
+   - For production mode:
+     ```sh
+     frontend-prod  # Builds the React frontend
+     backend-prod   # Starts the Flask backend with Gunicorn
+     ```
+   - For development mode:
+     ```sh
+     frontend       # Starts React dev server
+     backend        # Starts Flask dev server
+     ```
+
+That's it! Nix handles all dependencies, environment setup, and configuration for a fully reproducible build.
+
 ## Current Status
 
-- ✅ Flask backend running
-- ✅ Supabase connected
-- 🔄 Working on auth and task endpoints
+-  Flask backend running
+-  Supabase connected
+-  Full authentication system
+-  Task management with XP/gamification
+-  Pomodoro timer
+-  Shared boards
+-  Achievement system
+-  Production deployment ready
 
 ## Tech Stack
 
 - **Backend:** Flask + Supabase
-- **Frontend:** React (coming soon)
+- **Frontend:** React.js with CSS modules
+- **Database:** PostgreSQL (via Supabase)
+- **DevOps:** Nix for reproducible builds
