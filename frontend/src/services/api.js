@@ -83,6 +83,7 @@ export default api;
 export const boardsAPI = {
   getBoards: () => api.get('/boards'),           
   createBoard: (data) => api.post('/boards', data), 
+  deleteBoard: (id) => api.delete(`/boards/${id}`),
   getBoardTasks: (id) => api.get(`/boards/${id}/tasks`), 
   createBoardTask: (id, data) => api.post(`/boards/${id}/tasks`, data),
   updateBoardTask: (boardId, taskId, data) => api.put(`/boards/${boardId}/tasks/${taskId}`, data),

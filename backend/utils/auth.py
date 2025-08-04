@@ -64,7 +64,7 @@ def get_or_create_user_profile(auth_user, access_token=None):
         service_supabase = get_service_role_client()
 
         # Check if user profile exists
-        result = service_supabase.table('Users').select(
+        result = service_supabase.table('users').select(
             '*').eq('auth_id', auth_user.id).execute()
 
         if result.data:
@@ -79,7 +79,7 @@ def get_or_create_user_profile(auth_user, access_token=None):
             'email_verified': auth_user.email_confirmed_at is not None
         }
 
-        result = service_supabase.table('Users').insert(user_data).execute()
+        result = service_supabase.table('users').insert(user_data).execute()
         return result.data[0] if result.data else None
 
     except Exception as e:

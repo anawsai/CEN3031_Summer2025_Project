@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 from datetime import datetime, date
 import os
+import uuid
 
 # load environment variables
 load_dotenv()
@@ -70,7 +71,7 @@ def register():
 
         supabase = get_supabase_client()
 
-        existing_username = supabase.table("Users").select(
+        existing_username = supabase.table("users").select(
             "username").eq("username", username).execute()
         if existing_username.data:
             return jsonify({'error': 'Username already exists'}), 400
@@ -151,7 +152,7 @@ def login():
 
         try:
             service_supabase = get_service_role_client()
-            user_profile_response = service_supabase.table('Users').select(
+            user_profile_response = service_supabase.table('users').select(
                 '*').eq('auth_id', auth_response.user.id).execute()
 
             print(f"User profile query result: {user_profile_response.data}")
@@ -231,7 +232,7 @@ def create_task():
 
     auth_id = get_jwt_identity()
     service_supabase = get_service_role_client()
-    user_response = service_supabase.table('Users').select(
+    user_response = service_supabase.table('users').select(
         'id').eq('auth_id', auth_id).execute()
 
     print(f"User profile query result: {user_response.data}")
@@ -281,7 +282,7 @@ def get_tasks():
         auth_id = get_jwt_identity()
         service_supabase = get_service_role_client()
 
-        user_response = service_supabase.table('Users').select(
+        user_response = service_supabase.table('users').select(
             'id').eq('auth_id', auth_id).execute()
         if not user_response.data:
             return jsonify({'error': 'User profile not found'}), 404
@@ -315,7 +316,7 @@ def update_task(task_id):
             return jsonify({'error': 'Title cannot be empty'}), 400
 
         service_supabase = get_service_role_client()
-        user_response = service_supabase.table('Users').select(
+        user_response = service_supabase.table('users').select(
             'id').eq('auth_id', auth_id).execute()
 
         if not user_response.data:
@@ -347,7 +348,7 @@ def delete_task(task_id):
         auth_id = get_jwt_identity()
 
         service_supabase = get_service_role_client()
-        user_response = service_supabase.table('Users').select(
+        user_response = service_supabase.table('users').select(
             'id').eq('auth_id', auth_id).execute()
 
         if not user_response.data:
@@ -378,7 +379,7 @@ def complete_task(task_id):
         auth_id = get_jwt_identity()
 
         service_supabase = get_service_role_client()
-        user_response = service_supabase.table('Users').select(
+        user_response = service_supabase.table('users').select(
             'id').eq('auth_id', auth_id).execute()
 
         if not user_response.data:
@@ -426,14 +427,28 @@ def complete_task(task_id):
             xp_awarded = 10
 
             try:
-                service_supabase.rpc('increment_daily_task_count', {
-                                     'p_user_id': auth_id}).execute()
+                today = date.today().isoformat()
+                
+                existing_stats = service_supabase.table('daily_task_stats').select('*').eq(
+                    'user_id', auth_id).eq('date', today).execute()
+                
+                if existing_stats.data:
+                    current_count = existing_stats.data[0]['tasks_completed']
+                    service_supabase.table('daily_task_stats').update({
+                        'tasks_completed': current_count + 1
+                    }).eq('user_id', auth_id).eq('date', today).execute()
+                else:
+                    service_supabase.table('daily_task_stats').insert({
+                        'user_id': auth_id,
+                        'date': today,
+                        'tasks_completed': 1
+                    }).execute()
             except Exception as stats_error:
                 print(f"Failed to update daily stats: {stats_error}")
 
             from utils.achievements import check_task_achievements, get_user_stats
             try:
-                total_tasks, _ = get_user_stats(user_id, service_supabase)
+                total_tasks, _ = get_user_stats(auth_id, service_supabase)
                 newly_earned_achievements = check_task_achievements(
                     auth_id, total_tasks, service_supabase)
             except Exception as achievement_error:
@@ -522,9 +537,16 @@ def start_pomodoro_session():
     """Start a new pomodoro session"""
     try:
         auth_id = get_jwt_identity()
+        
+        service_supabase = get_service_role_client()
+        user_response = service_supabase.table('users').select('id').eq('auth_id', auth_id).execute()
+        
+        if not user_response.data:
+            return jsonify({'error': 'User profile not found'}), 404
+            
+        user_id = user_response.data[0]['id']
 
-        supabase = get_supabase_client()
-        new_session = supabase.table('focus_sessions').insert({
+        new_session = service_supabase.table('focus_sessions').insert({
             'user_id': auth_id,
             'start_time': datetime.utcnow().isoformat(),
             'duration': 1500,
@@ -541,6 +563,9 @@ def start_pomodoro_session():
             return jsonify({'error': 'Failed to create session'}), 500
 
     except Exception as e:
+        import traceback
+        print(f"Pomodoro start error: {str(e)}")
+        print(f"Full traceback: {traceback.format_exc()}")
         return jsonify({'error': str(e)}), 500
 
 
@@ -550,9 +575,16 @@ def complete_pomodoro_session(session_id):
     """Complete a pomodoro session"""
     try:
         auth_id = get_jwt_identity()
+        
+        service_supabase = get_service_role_client()
+        user_response = service_supabase.table('users').select('id').eq('auth_id', auth_id).execute()
+        
+        if not user_response.data:
+            return jsonify({'error': 'User profile not found'}), 404
+            
+        user_id = user_response.data[0]['id']
 
-        supabase = get_supabase_client()
-        session_result = supabase.table('focus_sessions').select(
+        session_result = service_supabase.table('focus_sessions').select(
             '*').eq('id', session_id).eq('user_id', auth_id).execute()
 
         if not session_result.data:
@@ -563,14 +595,13 @@ def complete_pomodoro_session(session_id):
         if session['completed']:
             return jsonify({'error': 'Session already completed'}), 400
 
-        update_result = supabase.table('focus_sessions').update({
+        update_result = service_supabase.table('focus_sessions').update({
             'completed': True
         }).eq('id', session_id).execute()
 
         if update_result.data:
             xp_awarded = 5
 
-            service_supabase = get_service_role_client()
             xp_response = service_supabase.table('user_xp').select(
                 '*').eq('user_id', auth_id).execute()
 
@@ -621,7 +652,7 @@ def get_shared_boards():
         auth_id = get_jwt_identity()
         service_supabase = get_service_role_client()
 
-        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+        user_response = service_supabase.table('users').select('id').eq('auth_id', auth_id).execute()
         if not user_response.data:
             return jsonify({'error': 'User profile not found'}), 404
 
@@ -649,13 +680,14 @@ def create_shared_board():
         auth_id = get_jwt_identity()
         service_supabase = get_service_role_client()
 
-        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+        user_response = service_supabase.table('users').select('id').eq('auth_id', auth_id).execute()
         if not user_response.data:
             return jsonify({'error': 'User profile not found'}), 404
 
         user_id = user_response.data[0]['id']
 
         board_data = {
+            'id': str(uuid.uuid4()),
             'name': name,
             'user_id': user_id,
             # No create_date since it sets to now() default in Supabase - Ant
@@ -675,7 +707,7 @@ def create_shared_board():
 
 
 
-@app.route('/api/boards/<int:board_id>/invite', methods=['POST'])
+@app.route('/api/boards/<string:board_id>/invite', methods=['POST'])
 @jwt_required()
 def invite_to_board(board_id):
     """invite user to shared board"""
@@ -690,7 +722,7 @@ def invite_to_board(board_id):
         service_supabase = get_service_role_client()
 
         # Get requesting user's internal user ID
-        user_response = service_supabase.table('Users').select('id').eq('auth_id', auth_id).execute()
+        user_response = service_supabase.table('users').select('id').eq('auth_id', auth_id).execute()
         if not user_response.data:
             return jsonify({'error': 'User not found'}), 404
         user_id = user_response.data[0]['id']
@@ -720,6 +752,38 @@ def invite_to_board(board_id):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/boards/<string:board_id>', methods=['DELETE'])
+@jwt_required()
+def delete_board(board_id):
+    """Delete a shared board (only owner can delete)"""
+    try:
+        auth_id = get_jwt_identity()
+        service_supabase = get_service_role_client()
+        
+        user_response = service_supabase.table('users').select('id').eq('auth_id', auth_id).execute()
+        if not user_response.data:
+            return jsonify({'error': 'User profile not found'}), 404
+        
+        user_id = user_response.data[0]['id']
+        
+        board_check = service_supabase.table('SharedBoards').select('id').eq('id', board_id).eq('user_id', user_id).execute()
+        if not board_check.data:
+            return jsonify({'error': 'Board not found or you do not have permission to delete it'}), 403
+        
+        service_supabase.table('BoardInvites').delete().eq('board_id', board_id).execute()
+        
+        delete_response = service_supabase.table('SharedBoards').delete().eq('id', board_id).execute()
+        
+        if delete_response.data:
+            return jsonify({'message': 'Board deleted successfully'}), 200
+        else:
+            return jsonify({'error': 'Failed to delete board'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
     
 @app.route('/api/analytics/tasks', methods=['GET'])
 @jwt_required()
@@ -727,11 +791,12 @@ def get_task_analytics():
     """Get task completion statistics"""
     try:
         auth_id = get_jwt_identity()
+        
+        service_supabase = get_service_role_client()
 
         start_date = request.args.get('start_date', date.today().isoformat())
         end_date = request.args.get('end_date', date.today().isoformat())
 
-        service_supabase = get_service_role_client()
         stats_response = service_supabase.table('daily_task_stats').select('*').eq(
             'user_id', auth_id
         ).gte('date', start_date).lte('date', end_date).order('date').execute()

@@ -19,6 +19,7 @@ function App() {
   const [previousLevel, setPreviousLevel] = useState(null);
   const [xpData, setXpData] = useState(null);
   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -133,11 +134,15 @@ function App() {
   };
 
 useEffect(() => {
-  if (isAuthenticated) {
+  if (isAuthenticated && !initialLoadComplete) {
+    fetchTasks();
+    fetchXPData();
+    setInitialLoadComplete(true);
+  } else if (isAuthenticated) {
     fetchTasks();
     fetchXPData();
   }
-}, [isAuthenticated]);
+}, [isAuthenticated, initialLoadComplete]);
 
 useEffect(() => {
   if (notificationQueue.length > 0 && !currentNotification) {

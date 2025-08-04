@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { pomodoroAPI } from '../services/api';
 
 const PomodoroTimer = ({ refreshXP, setNotificationQueue, onTimerStateChange }) => {
-  const [workDuration, setWorkDuration] = useState(30); 
+  const [workDuration, setWorkDuration] = useState(1500);
   const [showSettings, setShowSettings] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30); 
+  const [timeLeft, setTimeLeft] = useState(1500); 
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [sessionId, setSessionId] = useState(null);
@@ -37,7 +37,6 @@ const PomodoroTimer = ({ refreshXP, setNotificationQueue, onTimerStateChange }) 
       setIsPaused(false);
       pomodoroAPI.completeSession(sessionId)
         .then((response) => {
-          console.log('Pomodoro session completed!');
           
           if (response.xp_awarded && setNotificationQueue) {
             setNotificationQueue(prev => [...prev, {
@@ -74,12 +73,13 @@ const PomodoroTimer = ({ refreshXP, setNotificationQueue, onTimerStateChange }) 
   const handleStart = async () => {
     try {
       const response = await pomodoroAPI.startSession();
-      setSessionId(response.session_id);
+      setSessionId(response.session_id || response.id);
       setIsRunning(true);
       setIsPaused(false);
-      console.log('Pomodoro session started:', response.session_id);
+      setShowSettings(false);
     } catch (error) {
       console.error('Failed to start pomodoro session:', error);
+      alert('Failed to start timer. Please try again.');
     }
   };
 
@@ -163,23 +163,25 @@ const PomodoroTimer = ({ refreshXP, setNotificationQueue, onTimerStateChange }) 
         )}
       </div>
 
-      <button 
-        onClick={() => setShowSettings(!showSettings)}
-        style={{
-          width: '100%',
-          padding: '8px',
-          fontSize: '14px',
-          backgroundColor: 'transparent',
-          color: '#666',
-          border: '1px solid #666',
-          borderRadius: '4px',
-          cursor: 'pointer'
-        }}
-      >
-        Settings
-      </button>
+      {!isRunning && (
+        <button 
+          onClick={() => setShowSettings(!showSettings)}
+          style={{
+            width: '100%',
+            padding: '8px',
+            fontSize: '14px',
+            backgroundColor: 'transparent',
+            color: '#666',
+            border: '1px solid #666',
+            borderRadius: '4px',
+            cursor: 'pointer'
+          }}
+        >
+          Settings
+        </button>
+      )}
 
-      {showSettings && (
+      {showSettings && !isRunning && (
         <div style={{
           marginTop: '10px',
           padding: '15px',
@@ -188,28 +190,55 @@ const PomodoroTimer = ({ refreshXP, setNotificationQueue, onTimerStateChange }) 
           border: '1px solid rgba(255, 255, 255, 0.1)'
         }}>
           <div>
-            <label style={{ color: '#fff', display: 'block', marginBottom: '4px', fontSize: '14px' }}>
-              Work Duration (seconds):
+            <label style={{ color: '#fff', display: 'block', marginBottom: '8px', fontSize: '14px' }}>
+              Work Duration:
             </label>
-            <input
-              type="number"
-              value={workDuration}
-              onChange={(e) => {
-                const newDuration = parseInt(e.target.value);
-                setWorkDuration(newDuration);
-                if (!isRunning) setTimeLeft(newDuration);
-              }}
-              min="1"
-              max="3600"
-              style={{
-                padding: '6px',
-                borderRadius: '4px',
-                border: '1px solid #666',
-                backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                color: '#fff',
-                width: '60px'
-              }}
-            />
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <input
+                type="number"
+                value={Math.floor(workDuration / 60)}
+                onChange={(e) => {
+                  const minutes = parseInt(e.target.value) || 0;
+                  const seconds = workDuration % 60;
+                  const newDuration = minutes * 60 + seconds;
+                  setWorkDuration(newDuration);
+                  if (!isRunning) setTimeLeft(newDuration);
+                }}
+                min="0"
+                max="60"
+                style={{
+                  padding: '6px',
+                  borderRadius: '4px',
+                  border: '1px solid #666',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  width: '50px'
+                }}
+              />
+              <span style={{ color: '#fff' }}>min</span>
+              <input
+                type="number"
+                value={workDuration % 60}
+                onChange={(e) => {
+                  const seconds = parseInt(e.target.value) || 0;
+                  const minutes = Math.floor(workDuration / 60);
+                  const newDuration = minutes * 60 + seconds;
+                  setWorkDuration(newDuration);
+                  if (!isRunning) setTimeLeft(newDuration);
+                }}
+                min="0"
+                max="59"
+                style={{
+                  padding: '6px',
+                  borderRadius: '4px',
+                  border: '1px solid #666',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  color: '#fff',
+                  width: '50px'
+                }}
+              />
+              <span style={{ color: '#fff' }}>sec</span>
+            </div>
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Plus, Users, Crown, User } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Crown, User, Trash2 } from 'lucide-react';
 import { boardsAPI } from '../services/api';
 import CreateBoardModal from '../components/modals/CreateBoardModal';
 import TaskBoard from '../components/TaskBoard';
@@ -20,7 +20,7 @@ export function SharedBoards({ setCurrentPage }) {
     try {
       setLoading(true);
       const response = await boardsAPI.getBoards();
-      setBoards(response.boards || []);
+      setBoards(response.data.boards || []);
     } catch (error) {
       console.error('Failed to fetch boards:', error);
       setBoards([]);
@@ -49,6 +49,20 @@ export function SharedBoards({ setCurrentPage }) {
     setShowBoardView(false);
     setSelectedBoard(null);
     fetchBoards(); 
+  };
+
+  const handleDeleteBoard = async (e, boardId, boardName) => {
+    e.stopPropagation(); // Prevent board click
+    
+    if (window.confirm(`Are you sure you want to delete "${boardName}"? This action cannot be undone.`)) {
+      try {
+        await boardsAPI.deleteBoard(boardId);
+        await fetchBoards(); // Refresh the board list
+      } catch (error) {
+        console.error('Failed to delete board:', error);
+        alert('Failed to delete board. You may not have permission to delete this board.');
+      }
+    }
   };
 
   const formatDate = (dateString) => {
@@ -84,13 +98,15 @@ export function SharedBoards({ setCurrentPage }) {
             Collaborate with your team on shared task boards. Create new boards or join existing ones to work together on projects.
           </p>
           
-          <button 
-            onClick={() => setShowCreateModal(true)}
-            className={styles.createButton}
-          >
-            <Plus size={16} />
-            Create New Board
-          </button>
+          {!loading && boards.length > 0 && (
+            <button 
+              onClick={() => setShowCreateModal(true)}
+              className={styles.createButton}
+            >
+              <Plus size={16} />
+              Create New Board
+            </button>
+          )}
         </div>
 
         {loading && (
@@ -143,6 +159,13 @@ export function SharedBoards({ setCurrentPage }) {
                       )}
                     </div>
                   </div>
+                  <button
+                    className={styles.deleteButton}
+                    onClick={(e) => handleDeleteBoard(e, board.id, board.name)}
+                    title="Delete board"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
 
                 {board.description && (
