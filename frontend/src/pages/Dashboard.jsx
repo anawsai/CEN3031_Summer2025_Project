@@ -18,6 +18,7 @@ export function Dashboard({
   statsRefreshTrigger,
 }) {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [completingTasks, setCompletingTasks] = useState(new Set());
 
   const handleLogout = async () => {
     try {
@@ -31,6 +32,8 @@ export function Dashboard({
       setCurrentPage('home');
     }
   };
+
+  const pendingTasks = tasks.filter(task => !task.completed || completingTasks.has(task.id));
 
   return (
     <div className={styles.pageContainer}>
@@ -89,49 +92,68 @@ export function Dashboard({
         >
           <h3>My Tasks</h3>
 
-          {tasks.length === 0 && (
+          {pendingTasks.length === 0 && (
             <p style={{ color: '#777', fontSize: '14px' }}>
-              No tasks yet. Click to add your first task!
+              {tasks.length === 0 
+                ? 'No tasks yet. Click to add your first task!'
+                : 'All tasks completed! Great job! '
+              }
             </p>
           )}
 
-          {tasks.length > 0 && (
+          {pendingTasks.length > 0 && (
             <div>
-              {tasks.slice(0, 3).map((task, index) => (
-                <div
-                  key={index}
-                  className={`${styles.taskItem} ${task.completed ? styles.taskItemCompleted : styles.taskItemIncomplete}`}
-                >
-                  <div>
-                    <strong>{task.title}</strong>
-                    <p
-                      style={{
-                        margin: '4px 0',
-                        fontSize: '14px',
-                        color: '#777',
-                      }}
-                    >
-                      Due: {task.dueDate || 'N/A'} | Priority:{' '}
-                      {task.priority || 'N/A'}
-                    </p>
-                  </div>
-
+              {pendingTasks.slice(0, 3).map((task, index) => {
+                const originalIndex = tasks.findIndex(t => t.id === task.id);
+                return (
                   <div
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleComplete(index);
-                    }}
-                    className={`${styles.toggleComplete} ${task.completed ? styles.completed : ''}`}
-                    title={task.completed ? 'Completed' : 'Mark as Done'}
-                  />
-                </div>
-              ))}
+                    key={index}
+                    className={`${styles.taskItem} ${completingTasks.has(task.id) ? styles.taskItemCompleted : styles.taskItemIncomplete}`}
+                  >
+                    <div>
+                      <strong>{task.title}</strong>
+                      <p
+                        style={{
+                          margin: '4px 0',
+                          fontSize: '14px',
+                          color: '#777',
+                        }}
+                      >
+                        Due: {(task.due_date)
+                          ? new Date(task.due_date).toLocaleDateString('en-US', {
+                              month: '2-digit',
+                              day: '2-digit',
+                              year: 'numeric',
+                            })
+                          : 'N/A'} | Priority: {task.priority || 'N/A'}
+                      </p>
+                    </div>
+
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCompletingTasks(prev => new Set([...prev, task.id]));
+                        setTimeout(() => {
+                          toggleComplete(originalIndex);
+                          setCompletingTasks(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(task.id);
+                            return newSet;
+                          });
+                        }, 400);
+                      }}
+                      className={`${styles.toggleComplete} ${completingTasks.has(task.id) ? styles.completed : ''}`}
+                      title='Mark as Done'
+                    />
+                  </div>
+                );
+              })}
             </div>
           )}
 
-          {tasks.length > 3 && (
+          {pendingTasks.length > 3 && (
             <p style={{ color: '#777', fontSize: '14px' }}>
-              ...and {tasks.length - 3} more tasks
+              ...and {pendingTasks.length - 3} more pending tasks
             </p>
           )}
         </div>

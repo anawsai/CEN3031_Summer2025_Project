@@ -1,4 +1,5 @@
 import React from 'react';
+import { Search, Filter } from 'lucide-react';
 import api from '../services/api';
 import styles from '../styles/tasks.module.css';
 import { TaskForm } from '../components/TaskForm';
@@ -20,15 +21,18 @@ export function Tasks({
   const [editingIndex, setEditingIndex] = React.useState(null);
   const [taskToDelete, setTaskToDelete] = React.useState(null);
   const [filter, setFilter] = React.useState('');
+  const [activeTab, setActiveTab] = React.useState('all');
+  const [searchQuery, setSearchQuery] = React.useState('');
 
   const handleEditTask = (task, index) => {
+    const actualIndex = tasks.findIndex(t => t.id === task.id);
     setEditingTask({
       title: task.title,
       description: task.description,
       dueDate: task.due_date,
       priority: task.priority,
     });
-    setEditingIndex(index);
+    setEditingIndex(actualIndex);
     setShowEditModal(true);
   };
 
@@ -67,7 +71,8 @@ export function Tasks({
   };
 
   const handleDeleteTask = (task, index) => {
-    setTaskToDelete({ task, index });
+    const actualIndex = tasks.findIndex(t => t.id === task.id);
+    setTaskToDelete({ task, index: actualIndex });
     setShowDeleteConfirm(true);
   };
 
@@ -95,7 +100,33 @@ export function Tasks({
     }
   };
 
+  const handleToggleComplete = (filteredIndex) => {
+    const task = filteredTasks[filteredIndex];
+    const actualIndex = tasks.findIndex(t => t.id === task.id);
+    toggleComplete(actualIndex);
+  };
+
   let filteredTasks = [...tasks];
+
+  if (activeTab === 'pending') {
+    filteredTasks = filteredTasks.filter(task => !task.completed);
+  } else if (activeTab === 'completed') {
+    filteredTasks = filteredTasks.filter(task => task.completed);
+  }
+
+  if (searchQuery.trim()) {
+    const query = searchQuery.toLowerCase();
+    filteredTasks = filteredTasks.filter(task => {
+      const dueDate = task.due_date || task.dueDate;
+      return (
+        task.title.toLowerCase().includes(query) ||
+        task.description.toLowerCase().includes(query) ||
+        (task.priority && task.priority.toLowerCase().includes(query)) ||
+        (dueDate && dueDate.includes(query))
+      );
+    });
+  }
+
   if (filter === 'priority') {
     const priorityOrder = { High: 3, Medium: 2, Low: 1 };
     filteredTasks.sort(
@@ -103,14 +134,32 @@ export function Tasks({
         (priorityOrder[b.priority] || 0) - (priorityOrder[a.priority] || 0)
     );
   } else if (filter === 'deadline') {
-    filteredTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    filteredTasks.sort((a, b) => {
+      const dueDateA = a.due_date || a.dueDate;
+      const dueDateB = b.due_date || b.dueDate;
+      
+      if (!dueDateA && !dueDateB) return 0;
+      if (!dueDateA) return 1;
+      if (!dueDateB) return -1;
+      return new Date(dueDateA) - new Date(dueDateB);
+    });
   }
+
+  const getTaskCounts = () => {
+    return {
+      all: tasks.length,
+      pending: tasks.filter(task => !task.completed).length,
+      completed: tasks.filter(task => task.completed).length,
+    };
+  };
+
+  const taskCounts = getTaskCounts();
 
   return (
     <div className={styles.tasksContainer}>
       <div className={styles.innerContainer}>
         <div className={styles.headerRow}>
-          <h1 className={styles.headerTitle}> Tasks</h1>
+          <h1 className={styles.headerTitle}>Tasks</h1>
           <button
             className={styles.backButton}
             onClick={() => setCurrentPage('dashboard')}
@@ -119,36 +168,110 @@ export function Tasks({
           </button>
         </div>
 
-        <button
-          className={styles.addTaskButton}
-          onClick={() => setShowModal(true)}
-        >
-          + Add Task
-        </button>
-
-        <div className={styles.sortContainer}>
-          <label htmlFor='filter' className={styles.sortLabel}>
-            Sort By:
-          </label>
-          <select
-            id='filter'
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-            className={styles.sortSelect}
-          >
-            <option value=''>None</option>
-            <option value='priority'>Priority</option>
-            <option value='deadline'>Deadline</option>
-          </select>
+        {/* Tab Navigation */}
+        <div className={styles.tabContainer}>
+          <div className={styles.tabs}>
+            <button
+              className={`${styles.tab} ${activeTab === 'all' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('all')}
+            >
+              All
+              <span className={styles.tabCount}>{taskCounts.all}</span>
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'pending' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('pending')}
+            >
+              Pending
+              <span className={styles.tabCount}>{taskCounts.pending}</span>
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'completed' ? styles.activeTab : ''}`}
+              onClick={() => setActiveTab('completed')}
+            >
+              Completed
+              <span className={styles.tabCount}>{taskCounts.completed}</span>
+            </button>
+          </div>
         </div>
 
+        {/* Search & Controls */}
+        <div className={styles.controlsContainer}>
+          <div className={styles.searchContainer}>
+            <Search className={styles.searchIcon} size={20} />
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
+
+          <div className={styles.sortContainer}>
+            <Filter className={styles.filterIcon} size={16} />
+            <select
+              id='filter'
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              className={styles.sortSelect}
+            >
+              <option value=''>Sort by</option>
+              <option value='priority'>Priority</option>
+              <option value='deadline'>Due Date</option>
+            </select>
+          </div>
+
+          <button
+            className={styles.addTaskButton}
+            onClick={() => setShowModal(true)}
+          >
+            + Add Task
+          </button>
+        </div>
+
+        {/* Results Info */}
+        {(searchQuery || activeTab !== 'all') && (
+          <div className={styles.resultsInfo}>
+            Showing {filteredTasks.length} of {tasks.length} tasks
+            {searchQuery && (
+              <span className={styles.searchTerm}>
+                {' '}matching "{searchQuery}"
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Task List */}
         <div className={styles.taskListContainer}>
-          <TaskList
-            tasks={filteredTasks}
-            toggleComplete={toggleComplete}
-            onEditTask={handleEditTask}
-            onDeleteTask={handleDeleteTask}
-          />
+          {filteredTasks.length === 0 ? (
+            <div className={styles.emptyState}>
+              {searchQuery ? (
+                <>
+                  <p>No tasks found matching "{searchQuery}"</p>
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className={styles.clearSearchButton}
+                  >
+                    Clear search
+                  </button>
+                </>
+              ) : activeTab === 'pending' ? (
+                <p>No pending tasks! Great job! </p>
+              ) : activeTab === 'completed' ? (
+                <p>No completed tasks yet. Start working on your goals!</p>
+              ) : (
+                <p>No tasks yet. Create your first task to get started!</p>
+              )}
+            </div>
+          ) : (
+            <TaskList
+              tasks={filteredTasks}
+              toggleComplete={handleToggleComplete}
+              onEditTask={handleEditTask}
+              onDeleteTask={handleDeleteTask}
+            />
+          )}
         </div>
       </div>
 

@@ -61,7 +61,13 @@ export function TaskList({ tasks, toggleComplete, onEditTask, onDeleteTask }) {
             <h4 className={styles.title}>{task.title}</h4>
             <p className={styles.description}>{task.description}</p>
             <p className={styles.details}>
-              Due: {task.dueDate} | Priority: {task.priority}
+              Due: {(task.due_date || task.dueDate)
+                ? new Date(task.due_date || task.dueDate).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                  })
+                : 'No due date'} | Priority: {task.priority}
             </p>
           </div>
 
