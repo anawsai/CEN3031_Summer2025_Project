@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Star, Sparkles, Rocket } from 'lucide-react';
 
 const GameNotification = ({ notification, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -67,13 +68,16 @@ const GameNotification = ({ notification, onClose }) => {
               <div>
                 <div
                   style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
                     color: '#FFD700',
                     fontSize: '12px',
                     fontWeight: 'bold',
                     marginBottom: '4px',
                   }}
                 >
-                  🎉 ACHIEVEMENT UNLOCKED!
+                  <Star size={14} color="#FFD700" /> ACHIEVEMENT UNLOCKED!
                 </div>
                 <h3
                   style={{
@@ -130,13 +134,13 @@ const GameNotification = ({ notification, onClose }) => {
             >
               <div
                 style={{
-                  color: '#0021A5',
+                  color: '#ffffffff',
                   fontSize: '14px',
                   fontWeight: 'bold',
                   marginBottom: '8px',
                 }}
               >
-                🚀 LEVEL UP!
+                <Rocket size={14} color="#ffffffff" /> LEVEL UP!
               </div>
               <div
                 style={{
@@ -184,7 +188,7 @@ const GameNotification = ({ notification, onClose }) => {
                   marginBottom: '10px',
                 }}
               >
-                ✨ XP GAINED!
+                <Sparkles size={14} color="#FFD700" /> XP GAINED!
               </div>
               <div
                 style={{
